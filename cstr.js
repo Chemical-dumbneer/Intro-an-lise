@@ -1,18 +1,17 @@
 class Linha{
     constructor(T0,Q0,CA0,CB0,CC0,CD0){
-        this.Temp = T0;
-        this.Vaz = Q0;
-        this.Conc = [[CA0,CB0,null,null],[null,null,CC0,CD0]];
+        this.Temp = parsefloat(T0);
+        this.Vaz = parsefloat(Q0);
+        this.Conc = array(parsefloat(CA0),parsefloat(CB0),parsefloat(CC0),parsefloat(CD0));
     };
 };
 
 class nó_mistura{
-    entradas(vazão_1, vazão_2){
-        this.e1 = parsefloat(vazão_1);
-        this.e2 = parsefloat(vazão_2);
-        this.vazão_saída = this.e1 + this.e2;
+    calcular(Entrada1, Entrada2, Saída){
+        Saída.Temp = ((Entrada1.Temp * Entrada1.Vaz) + (Entrada2.Temp * Entrada2.Vaz))/(Entrada1.Vaz + Entrada2.Vaz);
+        Saída.Vaz = (Entrada1.Vaz + Entrada2.Vaz);
+        
     };
-    
 };
 
 class reator{
