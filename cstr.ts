@@ -1,3 +1,5 @@
+var i = 0; // define publicamente a variável de iteração do sistema
+
 class Linha{ // apenas carrega informação entre outros objetos
 
     public Temp:number; // define Temperatura da linha como uma variável pública
@@ -131,6 +133,12 @@ class CSTR_C_Jaqueta{   /* recebe informações de entrada, executa balanços de
     public Raz_vaz:number;
     private Vaz_max:number;
     private Vol_max:number;
+    private alfa:number;
+    private altura_reator:number;
+
+    private saldo_energia:number;
+    private saldo_volume: number;
+    private saldo_molar:number[];
     
     constructor(Fonte_Alimentação:Linha, Fonte_Jaqueta:Linha, Raz_Vol_in:number, 
         Raz_vaz_in:number, Raio:number, Altura:number, Raz_Cobertura_Jaqueta:number){
@@ -139,11 +147,24 @@ class CSTR_C_Jaqueta{   /* recebe informações de entrada, executa balanços de
         this.Fonte_Jaqueta = Fonte_Jaqueta;
         this.Vol_max = Altura * Math.PI * Math.pow(Raio,2);
         this.Vol = this.Vol_max * Raz_Vol_in;
-        /* para calcular a vazão máxima do reator será necessário definir abertura da saída, densidade do fluído calculado, através
-        da equaçãod de Bernoulli, essas variáveis serão assumidas para fins iniciais de simplificação, mas deverão ser calculadas
-        com precisão no futuro */
+        this.altura_reator = Altura;
+        
+        this.alfa = Math.PI * Math.pow(0.1 * Raio,2) * Math.sqrt(2*9.81);
+        this.Vaz_max = this.alfa * Math.sqrt(this.altura_reator * (this.Vol/this.Vol_max));
+        this.Vaz = this.Vaz_max * Raz_vaz_in;
+
+        
+
+
+    };  
+
+    Bal_Massa():void{
 
     };
 
+    Bal_Energia():void{
+        
+    };
+    
 
 }
