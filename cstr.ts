@@ -1,4 +1,7 @@
 var i = 0; // define publicamente a variável de iteração do sistema
+const n_s = 200; // define o número de iterações por segundo
+const t_tot = 30; // define o tempo total de simulação em segundos
+const dt = 1/n_s; // define a duração em segundos de cada iteração  
 
 class Linha{ // apenas carrega informação entre outros objetos
 
@@ -126,7 +129,8 @@ class CSTR_C_Jaqueta{   /* recebe informações de entrada, executa balanços de
     public Conc:number[];
     public His_Temp:number[];
     public His_Vaz:number[];
-    public His_Conc:number[];
+    public His_Conc:any;
+    public His_Vol:number[];
     public Fonte_Alimentação:Linha;
     public Fonte_Jaqueta:Linha;
     public Vol:number;
@@ -135,13 +139,27 @@ class CSTR_C_Jaqueta{   /* recebe informações de entrada, executa balanços de
     private Vol_max:number;
     private alfa:number;
     private altura_reator:number;
+    private A_tt:number;
 
     private saldo_energia:number;
     private saldo_volume: number;
     private saldo_molar:number[];
+
+    private Dados_Reação = {
+        matriz_reagente : [-1,-1,1,1], // coeficientes da eq. química balanceada
+        Var_entalpia : -300, // variação de entalpia da reação [J/mol]
+        Cp : 100, // Cp do fluído reativo 
+        A : 10, //  Fator Pré-Exponencial (equação de Arrhenius)
+        Ej : 200, // Energia de Ativação da reação (equação de Arrhenius)
+    };
     
+    K_arr(Temp:number){
+        return this.Dados_Reação.A * Math.exp((-this.Dados_Reação.Ej)/(8.314 * (Temp + 273.15)));
+    };  
+
     constructor(Fonte_Alimentação:Linha, Fonte_Jaqueta:Linha, Raz_Vol_in:number, 
-        Raz_vaz_in:number, Raio:number, Altura:number, Raz_Cobertura_Jaqueta:number){
+        Raz_vaz_in:number, Raio:number, Altura:number, Raz_Cobertura_Jaqueta:number,
+        Temp_in:number, Conc_in:number[]){
 
         this.Fonte_Alimentação = Fonte_Alimentação;
         this.Fonte_Jaqueta = Fonte_Jaqueta;
@@ -149,17 +167,26 @@ class CSTR_C_Jaqueta{   /* recebe informações de entrada, executa balanços de
         this.Vol = this.Vol_max * Raz_Vol_in;
         this.altura_reator = Altura;
         
+        this.His_Vol[i] = this.Vol;
+        this.His_Temp[i] = Temp_in;
+        this.Temp = Temp_in;
+        
         this.alfa = Math.PI * Math.pow(0.1 * Raio,2) * Math.sqrt(2*9.81);
         this.Vaz_max = this.alfa * Math.sqrt(this.altura_reator * (this.Vol/this.Vol_max));
         this.Vaz = this.Vaz_max * Raz_vaz_in;
 
-        
+        this.His_Vaz[i] = this.Vaz;
+        this.His_Conc[i] = Conc_in;
 
 
     };  
 
     Bal_Massa():void{
 
+        this.Vol = this.His_Vol[i-1] + (this.Fonte_Alimentação.Vaz - this.Vaz)*dt;
+
+        
+        
     };
 
     Bal_Energia():void{
