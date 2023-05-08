@@ -1,6 +1,3 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.Fonte = exports.Controlador_PID = exports.CSTR_C_Jaqueta = exports.Nó_Reciclo = exports.Nó_Mistura = exports.Linha = void 0;
 var i = 0; // define publicamente a variável de iteração do sistema
 var n_s = 200; // define o número de iterações por segundo
 var t_tot = 30; // define o tempo total de simulação em segundos
@@ -21,7 +18,6 @@ var Linha = /** @class */ (function () {
     ;
     return Linha;
 }());
-exports.Linha = Linha;
 ;
 var Nó_Mistura = /** @class */ (function () {
     function Nó_Mistura(entrada1, entrada2) {
@@ -50,7 +46,6 @@ var Nó_Mistura = /** @class */ (function () {
     ;
     return Nó_Mistura;
 }());
-exports.Nó_Mistura = Nó_Mistura;
 ;
 var Nó_Reciclo = /** @class */ (function () {
     function Nó_Reciclo(entrada, Raz_reciclo_in) {
@@ -96,7 +91,6 @@ var Nó_Reciclo = /** @class */ (function () {
     ;
     return Nó_Reciclo;
 }());
-exports.Nó_Reciclo = Nó_Reciclo;
 ;
 var CSTR_C_Jaqueta = /** @class */ (function () {
     function CSTR_C_Jaqueta(Fonte_Alimentação, Fonte_Jaqueta, Raz_Vol_in, Raz_vaz_in, Raio, Altura, Raz_Cobertura_Jaqueta, Espessura_Da_Camisa, Temp_in, Conc_in) {
@@ -179,7 +173,6 @@ var CSTR_C_Jaqueta = /** @class */ (function () {
     ;
     return CSTR_C_Jaqueta;
 }());
-exports.CSTR_C_Jaqueta = CSTR_C_Jaqueta;
 ;
 var Controlador_PID = /** @class */ (function () {
     function Controlador_PID(Objeto, Alvo_Observações, Historico_Observações, Set_point_Observações, Alvo_controlador, K_proporcional, K_derivativo, K_integrante, Resposta_Mínima, Resposta_Máxima) {
@@ -215,7 +208,6 @@ var Controlador_PID = /** @class */ (function () {
     ;
     return Controlador_PID;
 }());
-exports.Controlador_PID = Controlador_PID;
 ;
 var Fonte = /** @class */ (function () {
     function Fonte(Vazão_Máxima_Fonte, Razão_de_Vazão, Temperatura, Matriz_Conc) {
@@ -232,5 +224,4 @@ var Fonte = /** @class */ (function () {
     ;
     return Fonte;
 }());
-exports.Fonte = Fonte;
 ;
