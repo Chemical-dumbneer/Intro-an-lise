@@ -3,6 +3,8 @@ const n_s = 200; // define o número de iterações por segundo
 const t_tot = 30; // define o tempo total de simulação em segundos
 const dt = 1/n_s; // define a duração em segundos de cada iteração  
 
+/** declarando as classes de Objetos utilizados nesse simulador **/
+
 class Linha{ // apenas carrega informação entre outros objetos
 
     public Temp:number; // define Temperatura da linha como uma variável pública
@@ -315,3 +317,4 @@ class Fonte{
         this.Vaz = this.Vaz_Max * this.Raz_Vaz;
     };
 };
+
