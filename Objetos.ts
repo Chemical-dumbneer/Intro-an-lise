@@ -17,7 +17,7 @@ class Linha{ // apenas carrega informação entre outros objetos
         this.Fonte = entrada; // define qual objeto é a fonte de dados dessa linha
     };
 
-    update(){ // atualiza os dados de temperatura, vazão e concentração copiando-os do objeto fonte
+    public update():void{ // atualiza os dados de temperatura, vazão e concentração copiando-os do objeto fonte
         this.Temp = this.Fonte.Temp
         this.Vaz = this.Fonte.Vaz
         this.Conc = this.Fonte.Conc
@@ -49,7 +49,7 @@ class Nó_Mistura{ // Mistura as informações de duas linhas distintas e armaze
         this.Fonte2 = entrada2; // define qual objeto é a fonte da entrada #2 deste nó
     };
 
-    update(){ // atualiza os parâmetros internos desse nó com base nas fontes definidas no construtor
+    public update():void{ // atualiza os parâmetros internos desse nó com base nas fontes definidas no construtor
 
         this.Vaz = this.Fonte1.Vaz + this.Fonte2.Vaz;
         this.Temp = ((this.Fonte1.Temp*this.Fonte1.Vaz)+(this.Fonte2.Temp*this.Fonte2.Vaz))/this.Vaz;
@@ -68,6 +68,7 @@ class Nó_Reciclo{ // recebe informações de uma linha e divide a vazão dessa 
     public Fonte:Linha; // define a fonte de entrada de informação do nó como um objeto do tipo "linha" público
     public saída:any; // define a saída principal do nó como um objeto qualquer público
     public reciclo:any; // define a saída de recíclo do nó como um objeto qualquer público
+    public Raz_reciclo_controlador:number;
 
     constructor(entrada:Linha,Raz_reciclo_in:number){   /* Copia os dados de temperatura, vazão e concentração da linha fonte e
                                                         faz o cálculo dos parâmetros internos em um momento inicial 
@@ -99,11 +100,11 @@ class Nó_Reciclo{ // recebe informações de uma linha e divide a vazão dessa 
 
     };
 
-    update(Raz_reciclo_controlador:number){ // atualiza as informações das saídas do nó
+    public update():void{ // atualiza as informações das saídas do nó
         this.Vaz = this.Fonte.Vaz;
         this.Temp = this.Fonte.Vaz;
         this.Conc = this.Fonte.Conc;
-        this.Raz_Reciclo = Raz_reciclo_controlador
+        this.Raz_Reciclo = this.Raz_reciclo_controlador;
 
         this.saída={
             Temp : this.Temp,
@@ -144,6 +145,7 @@ class CSTR_C_Jaqueta{   /* recebe informações de entrada, executa balanços de
     private Vol_Camisa:number;
     private A_tt:number;
     private U_tt:number;
+    private Prod_Reag:number;
 
     private saldo_energia:number;
     private Mol_Reator:number[];
@@ -155,11 +157,17 @@ class CSTR_C_Jaqueta{   /* recebe informações de entrada, executa balanços de
     private Dados_Reação = {
         matriz_reagente : [-1,-1,1,1], // coeficientes da eq. química balanceada
         Var_entalpia : -300, // variação de entalpia da reação [J/mol]
+        Densidade : 1000, // densidade do fluido reativo (água) [kg/m³]
         Cp : 100, // Cp do fluído reativo 
         A : 10, //  Fator Pré-Exponencial (equação de Arrhenius)
         Ej : 200, // Energia de Ativação da reação (equação de Arrhenius)
     };
     
+    private Dados_Jaqueta = {
+        Cp : 100, // Cp do fluido refrigerante
+        Densidade : 1000 // densidade do fluido refrigerante [kg/m³]
+    };
+
     K_arr(Temp:number){
         return this.Dados_Reação.A * Math.exp((-this.Dados_Reação.Ej)/(8.314 * (Temp)));
     };  
@@ -192,9 +200,14 @@ class CSTR_C_Jaqueta{   /* recebe informações de entrada, executa balanços de
         this.His_Conc[i] = Conc_in;
 
     };  
-
-   Bal_Massa():void{
+    
+    public update():void{
+        this.Vol = this.Vol + this.Fonte_Alimentação.Vaz - this.Vaz;
+        this.His_Vol[i] = this.Vol;
+        this.Vaz = this.Vaz_max * this.Raz_vaz;
+        this.His_Vaz[i] = this.Vaz;
         
+        this.Prod_Reag = 1
         this.Vol = this.His_Vol[i-1] + (this.Fonte_Alimentação.Vaz - this.Vaz)*dt;
         for(let j = 0; j < this.Conc.length; j++){
             this.Mol_Reator[j] = this.Conc[j] * this.Vol;
@@ -212,14 +225,93 @@ Math.abs(this.Dados_Reação.matriz_reagente[j]));
             
             this.Mol_Reator[j] = this.Mol_Reator[j] + this.saldo_molar[j];
             this.Conc[j] = this.Mol_Reator[j] / this.Vol;
+            if(this.Dados_Reação.matriz_reagente[j] < 0){
+                this.Prod_Reag = this.Prod_Reag * this.Conc[j];
+            };
         };
         this.His_Conc[i] = this.Conc;
 
-    };
-
-    Bal_Energia():void{
+        this.saldo_energia = ((this.His_Vaz[i-1] * this.His_Temp[i-1]) - (this.Fonte_Alimentação.Vaz * this.Fonte_Alimentação.Temp) -
+        ((( this.His_Vol[i-1] * this.K_arr(this.His_Temp[i-1]) * this.Prod_Reag * this.Dados_Reação.Var_entalpia) -
+        ((this.U_tt * this.A_tt * (this.Temp - this.Temp_Jaqueta))/(this.Dados_Reação.Densidade 
+        * this.Dados_Reação.Cp)))))/this.Vol; // calculando o saldo de temperatura do fluido reativo
         
+        this.Temp = this.Temp + this.saldo_energia;
+        this.His_Temp[i] = this.Temp;
+        
+        this.saldo_energia = ((this.Fonte_Jaqueta.Vaz * (this.Temp_Jaqueta - this.Temp))/this.Vol_Camisa) +
+        ((this.U_tt * this.A_tt * (this.Temp - this.Temp_Jaqueta))/(this.Vol_Camisa * this.Dados_Jaqueta.Densidade 
+        * this.Dados_Jaqueta.Cp)); // calculando o saldo de temperatura do fluido refrigerante
+        
+        this.Temp_Jaqueta = this.Temp_Jaqueta + this.saldo_energia;
     };
-    
+};
 
-}
+class Controlador_PID{
+    public objeto:any;
+    public Set_point:number;
+    public Obs:number
+    public His_Obs:number[];
+    public Const_Pro:number;
+    public Const_Der:number;
+    public Val_Der:number;
+    public Const_Int:number;
+    public Val_Int:number;
+    public Controle:number;
+    public Resp_Min:number;
+    public Resp_Max:number;
+
+    private Resp:number;
+
+    constructor(Objeto:any, Alvo_Observações:number, Historico_Observações:number[], Set_point_Observações:number, 
+        Alvo_controlador:number, K_proporcional:number, K_derivativo:number, K_integrante:number,
+        Resposta_Mínima:number, Resposta_Máxima:number){
+
+        this.objeto = Objeto;
+        this.Obs = Alvo_Observações;
+        this.His_Obs = Historico_Observações;
+        this.Set_point = Set_point_Observações;
+        this.Controle = Alvo_controlador;
+        this.Const_Pro = K_proporcional;
+        this.Const_Der = K_derivativo;
+        this.Const_Int = K_integrante;
+        this.Resp_Min = Resposta_Mínima;
+        this.Resp_Max = Resposta_Máxima;
+        this.Val_Der = 1;
+        this.Val_Int = 0;
+    };
+
+    public update():void{
+        this.Val_Der = (this.His_Obs[i]-this.His_Obs[i-1])/dt;
+        this.Val_Int = this.Val_Int + ((this.His_Obs[i-1] + this.His_Obs[i] - (2 * this.Set_point)) / 2) * dt;
+        this.Resp = this.Const_Pro * (this.Obs - this.Set_point) +
+            this.Const_Pro * this.Const_Der * this.Val_Der +
+            (this.Const_Pro / this.Const_Int) * this.Val_Int;
+        this.Controle = this.Controle * this.Resp;
+        if(this.Controle > this.Resp_Max){
+            this.Controle = this.Resp_Max;
+        }else if(this.Controle < this.Resp_Min){
+            this.Controle = this.Resp_Min;
+        };
+    };
+};
+
+class Fonte{
+    public Vaz:number;
+    public Vaz_Max:number;
+    public Raz_Vaz:number;
+    public Temp:number;
+    public Conc:number[];
+
+    constructor(Vazão_Máxima_Fonte:number, Razão_de_Vazão:number, Temperatura:number, Matriz_Conc:number[]){
+        this.Vaz_Max = Vazão_Máxima_Fonte;
+        this.Raz_Vaz = Razão_de_Vazão;
+        this.Vaz = this.Vaz_Max * this.Raz_Vaz;
+        this.Temp = Temperatura;
+        this.Conc = Matriz_Conc;
+    };
+
+    public update(){
+        this.Vaz = this.Vaz_Max * this.Raz_Vaz;
+    };
+};
