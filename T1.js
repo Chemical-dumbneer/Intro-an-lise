@@ -16,6 +16,8 @@ var Linha = /** @class */ (function () {
         this.Conc = this.Fonte.Conc;
     };
     ;
+    Linha.prototype.Publish = function () {
+    };
     return Linha;
 }());
 ;
@@ -44,6 +46,8 @@ var Nó_Mistura = /** @class */ (function () {
         ;
     };
     ;
+    Nó_Mistura.prototype.Publish = function () {
+    };
     return Nó_Mistura;
 }());
 ;
@@ -89,6 +93,8 @@ var Nó_Reciclo = /** @class */ (function () {
         };
     };
     ;
+    Nó_Reciclo.prototype.Publish = function () {
+    };
     return Nó_Reciclo;
 }());
 ;
@@ -171,6 +177,8 @@ var CSTR_C_Jaqueta = /** @class */ (function () {
         this.Temp_Jaqueta = this.Temp_Jaqueta + this.saldo_energia;
     };
     ;
+    CSTR_C_Jaqueta.prototype.Publish = function () {
+    };
     return CSTR_C_Jaqueta;
 }());
 ;
@@ -206,6 +214,8 @@ var Controlador_PID = /** @class */ (function () {
         ;
     };
     ;
+    Controlador_PID.prototype.Publish = function () {
+    };
     return Controlador_PID;
 }());
 ;
@@ -222,6 +232,83 @@ var Fonte = /** @class */ (function () {
         this.Vaz = this.Vaz_Max * this.Raz_Vaz;
     };
     ;
+    Fonte.prototype.Publish = function () {
+    };
     return Fonte;
 }());
 ;
+// declarando todos os objetos utilizados no sistema
+var Fonte_1;
+var Linha_1;
+var Nó_mistura_1;
+var Linha_2;
+var Fonte_J;
+var Linha_J;
+var Controlador;
+var Reator;
+var Linha_3;
+var Reciclo;
+var Linha_4;
+var Linha_5;
+Fonte_1 = new Fonte(40, // vazão máxima da Fonte
+1, // razão de Vazão inicial
+35, // temperatura da fonte
+[0.5, 0.5, 0, 0] // matriz de concentrações inicial da fonte
+);
+Linha_1 = new Linha(Fonte_1 // entrada da linha
+);
+Nó_mistura_1 = new Nó_Mistura(// pré-declarando o objeto para poder prosseguir
+Linha_1, // entrada 1 no nó
+Linha_1 // entrada 2 no nó
+);
+Linha_2 = new Linha(Nó_mistura_1 // entrada da linha
+);
+Fonte_J = new Fonte(20, // vazão máxima da fonte
+1, // razão de vazão inicial
+15, // temperatuda da fonte
+[0, 0, 0, 0] // matriz de concentrações inicial da fonte
+);
+Linha_J = new Linha(Fonte_J // entrada da linha
+);
+Reator = new CSTR_C_Jaqueta(Linha_2, // entrada do fluido reativo do reator
+Linha_J, // entrada do fluido refrigerante do reator
+0.8, // razão de volume inicial do reator
+0.2, // razão de vazão máxima inicial do reator
+1, // raio do reator
+2, // altura do reator
+0.8, // razão de cobertura da jaqueta
+0.2, // espessura da jaqueta
+50, // temperatura inicial do reator
+[0, 0, 0, 0] // matriz de concentrações inicial do reator
+);
+Linha_3 = new Linha(Reator // entrada da linha
+);
+Reciclo = new Nó_Reciclo(Linha_3, // entrada do nó
+0.5 // razão de reciclo do nó
+);
+Linha_4 = new Linha(Reciclo.reciclo // entrada da linha
+);
+Nó_mistura_1 = new Nó_Mistura(// re-declarando o nó, agora com as entradas adequadas
+Linha_1, // entrada 1 do nó
+Linha_4 // entrada 2 do nó
+);
+Linha_5 = new Linha(Reciclo.saída // entrada da linha
+);
+var Sist = [
+    Fonte_1,
+    Linha_1,
+    Nó_mistura_1,
+    Linha_2,
+    Fonte_J,
+    Linha_J,
+    Reator,
+    Linha_3,
+    Reciclo,
+    Linha_4,
+    Linha_5
+];
+for (var i_1 = 0; i_1 < (n_s * t_tot); i_1++) {
+    Sist.forEach(function (objeto) {
+        objeto.update();
+    });
+}

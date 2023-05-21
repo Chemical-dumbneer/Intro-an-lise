@@ -22,6 +22,10 @@ class Linha{ // apenas carrega informação entre outros objetos
         this.Vaz = this.Fonte.Vaz
         this.Conc = this.Fonte.Conc
     };
+
+    public Publish():void{
+
+    }
 };
 
 class Nó_Mistura{ // Mistura as informações de duas linhas distintas e armazena as informações em si para serem acessadas por outra linha
@@ -57,6 +61,10 @@ class Nó_Mistura{ // Mistura as informações de duas linhas distintas e armaze
             this.Conc[j] = ((this.Fonte1.Conc[j]*this.Fonte1.Vaz)+(this.Fonte2.Conc[j]*this.Fonte2.Vaz))/this.Vaz;
         };
     };
+
+    public Publish():void{
+        
+    }
 };
 
 class Nó_Reciclo{ // recebe informações de uma linha e divide a vazão dessa linha em outras 2 com base em uma razão de reciclo pré definida
@@ -119,6 +127,10 @@ class Nó_Reciclo{ // recebe informações de uma linha e divide a vazão dessa 
         };
 
     };
+
+    public Publish():void{
+        
+    }
 
 };
 
@@ -245,6 +257,10 @@ Math.abs(this.Dados_Reação.matriz_reagente[j]));
         
         this.Temp_Jaqueta = this.Temp_Jaqueta + this.saldo_energia;
     };
+
+    public Publish():void{
+        
+    }
 };
 
 class Controlador_PID{
@@ -294,6 +310,10 @@ class Controlador_PID{
             this.Controle = this.Resp_Min;
         };
     };
+
+    public Publish():void{
+        
+    }
 };
 
 class Fonte{
@@ -314,5 +334,102 @@ class Fonte{
     public update(){
         this.Vaz = this.Vaz_Max * this.Raz_Vaz;
     };
+
+    public Publish():void{
+        
+    }
 };
 
+// declarando todos os objetos utilizados no sistema
+
+var Fonte_1:Fonte;
+var Linha_1:Linha;
+var Nó_mistura_1:Nó_Mistura;
+var Linha_2:Linha;
+var Fonte_J:Fonte;
+var Linha_J:Linha;
+var Controlador:Controlador_PID;
+var Reator:CSTR_C_Jaqueta;
+var Linha_3:Linha;
+var Reciclo:Nó_Reciclo;
+var Linha_4:Linha;
+var Linha_5:Linha;
+
+Fonte_1 = new Fonte(
+    40, // vazão máxima da Fonte
+    1, // razão de Vazão inicial
+    35, // temperatura da fonte
+    [0.5,0.5,0,0] // matriz de concentrações inicial da fonte
+);
+Linha_1 = new Linha(
+    Fonte_1 // entrada da linha
+);
+Nó_mistura_1 = new Nó_Mistura( // pré-declarando o objeto para poder prosseguir
+    Linha_1, // entrada 1 no nó
+    Linha_1 // entrada 2 no nó
+);
+Linha_2 = new Linha(
+    Nó_mistura_1 // entrada da linha
+);
+Fonte_J = new Fonte(
+    20, // vazão máxima da fonte
+    1, // razão de vazão inicial
+    15, // temperatuda da fonte
+    [0,0,0,0] // matriz de concentrações inicial da fonte
+);
+Linha_J = new Linha(
+    Fonte_J // entrada da linha
+);
+Reator = new CSTR_C_Jaqueta(
+    Linha_2, // entrada do fluido reativo do reator
+    Linha_J, // entrada do fluido refrigerante do reator
+    0.8, // razão de volume inicial do reator
+    0.2, // razão de vazão máxima inicial do reator
+    1, // raio do reator
+    2, // altura do reator
+    0.8, // razão de cobertura da jaqueta
+    0.2, // espessura da jaqueta
+    50, // temperatura inicial do reator
+    [0,0,0,0] // matriz de concentrações inicial do reator
+);
+Linha_3 = new Linha(
+    Reator // entrada da linha
+);
+Reciclo = new Nó_Reciclo(
+    Linha_3, // entrada do nó
+    0.5 // razão de reciclo do nó
+);
+Linha_4 = new Linha(
+    Reciclo.reciclo // entrada da linha
+);
+Nó_mistura_1 = new Nó_Mistura( // re-declarando o nó, agora com as entradas adequadas
+    Linha_1, // entrada 1 do nó
+    Linha_4 // entrada 2 do nó
+);
+Linha_5 = new Linha(
+    Reciclo.saída // entrada da linha
+);
+
+var Sist = [
+    Fonte_1,
+    Linha_1,
+    Nó_mistura_1,
+    Linha_2,
+    Fonte_J,
+    Linha_J,
+    Reator,
+    Linha_3,
+    Reciclo,
+    Linha_4,
+    Linha_5
+];
+
+for(let i = 0; i < (n_s * t_tot); i++){
+    Sist.forEach(objeto => {
+        objeto.update();
+    });    
+}
+
+Sist.forEach(objeto => {
+    objeto.Publish();
+})
