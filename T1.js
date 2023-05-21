@@ -1,7 +1,11 @@
+var script = document.createElement('script');
+script.src = 'https://code.jquery.com/jquery-3.6.3.min.js'; // Check https://jquery.com/ for the current version
+document.getElementsByTagName('head')[0].appendChild(script);
 var i = 0; // define publicamente a variável de iteração do sistema
 var n_s = 200; // define o número de iterações por segundo
 var t_tot = 30; // define o tempo total de simulação em segundos
 var dt = 1 / n_s; // define a duração em segundos de cada iteração  
+var Ecrã = document.getElementById("S1");
 var Linha = /** @class */ (function () {
     function Linha(entrada) {
         this.Temp = entrada.Temp;
@@ -312,3 +316,6 @@ for (var i_1 = 0; i_1 < (n_s * t_tot); i_1++) {
         objeto.update();
     });
 }
+Sist.forEach(function (objeto) {
+    objeto.Publish();
+});
