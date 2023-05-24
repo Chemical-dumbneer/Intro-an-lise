@@ -5,7 +5,7 @@ var i = 0; // define publicamente a variável de iteração do sistema
 var n_s = 200; // define o número de iterações por segundo
 var t_tot = 30; // define o tempo total de simulação em segundos
 var dt = 1 / n_s; // define a duração em segundos de cada iteração  
-var Ecrã = document.getElementById("S1");
+var Ecrã = document.getElementById("D1");
 var Linha = /** @class */ (function () {
     function Linha(entrada) {
         this.Temp = entrada.Temp;
@@ -220,6 +220,7 @@ var Controlador_PID = /** @class */ (function () {
     ;
     Controlador_PID.prototype.Publish = function () {
     };
+    ;
     return Controlador_PID;
 }());
 ;

@@ -6,7 +6,7 @@ var i = 0; // define publicamente a variável de iteração do sistema
 const n_s = 200; // define o número de iterações por segundo
 const t_tot = 30; // define o tempo total de simulação em segundos
 const dt = 1/n_s; // define a duração em segundos de cada iteração  
-var Ecrã = document.getElementById("S1");
+var Ecrã = document.getElementById("D1");
 
 class Linha{ // apenas carrega informação entre outros objetos
 
@@ -317,8 +317,7 @@ class Controlador_PID{
     };
 
     public Publish():void{
-        
-    }
+    };
 };
 
 class Fonte{
