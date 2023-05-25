@@ -1,11 +1,12 @@
 import math
-import matplotlib
-import types
+import matplotlib.pyplot as plt
+import numpy as np
 
 i = 0
 n_s = 200
 t_tot = 30
 dt = 1/n_s
+M_t = np.arange(0,t_tot,dt)
 
 class Linha:
     def __init__(self, Entrada) -> None:
@@ -83,6 +84,7 @@ class CSTR_C_Resfr:
 
     Dados_Reação = type('',(),{})()
     Dados_Reação.Matriz_reagente = [-1,-1,1,1]
+    Dados_Reação.Nomes_reagente = ["A","B","C","D"]
     Dados_Reação.Var_entalpia = -300
     Dados_Reação.Densidade = 1000
     Dados_Reação.Cp = 100
@@ -103,6 +105,10 @@ class CSTR_C_Resfr:
         self.Fonte_Alimentação = Fonte_Alimentção
         self.Fonte_Jaqueta     = Fonte_Jaqueta
         self.Temp_Jaqueta      = self.Fonte_Jaqueta.Temp
+        self.His_Temp_J        = []
+        self.His_Vaz_J         = []
+        self.His_Temp_J.append(self.Temp_Jaqueta)
+        self.His_Vaz_J.append(self.Fonte_Jaqueta.Vaz)
 
         self.A_tt        = Area_Cobert_Jaqueta
         self.Vol_Jaqueta = Vol_Jaqueta
@@ -158,7 +164,7 @@ class CSTR_C_Resfr:
             if self.Dados_Reação.Matriz_reagente[j] < 0:
                 self.prod_reag = self.prod_reag * math.pow(self.Conc[j], - self.Dados_Reação.Matriz_reagente[j])
 
-        self.His_Conc[i] = self.Conc
+        self.His_Conc.append(self.Conc)
         # saldo de temperatura para o fluido reativo
         self.Saldo_energia = (
             ((self.His_Vaz[i-1] * self.His_Temp[i-1]) - (self.Fonte_Alimentação.Vaz * self.Fonte_Alimentação.Temp) -
@@ -166,7 +172,7 @@ class CSTR_C_Resfr:
             ((self.U_tt * self.A_tt * (self.Temp - self.Temp_Jaqueta))/(self.Dados_Reação.Densidade * self.Dados_Reação.Cp)))))/self.Vol
         )
         self.Temp = self.Temp + self.Saldo_energia
-        self.His_Temp[i] = self.Temp
+        self.His_Temp.append(self.Temp)
         # saldo de temperatura para o fluido refrigerante
         self.Saldo_energia = (
             ((self.Fonte_Jaqueta.Vaz * (self.Temp_Jaqueta - self.Temp))/self.Vol_Jaqueta) +
@@ -174,9 +180,44 @@ class CSTR_C_Resfr:
         )
 
         self.Temp_Jaqueta = self.Temp_Jaqueta + self.Saldo_energia
+        self.His_Temp_J.append(self.Temp_Jaqueta)
+        self.His_Vaz_J.append(self.Fonte_Jaqueta.Vaz)
     
     def Publish(self) -> None:
-        pass
+
+        plt.subplot(2,3,1)
+        plt.plot(M_t,
+                 np.asarray(self.His_Temp) - 273.15,
+                 ls= "-")
+        plt.xlabel("Tempo [s]")
+        plt.ylabel("Temp. Reator [ºC]")
+
+        plt.subplot(2,3,2)
+        plt.plot(np.asarray(self.His_Vaz),"-")
+        plt.xlabel("Tempo [s]")
+        plt.ylabel("Vazão Reator [Litros/s]")
+
+        plt.subplot(2,3,3)
+        plt.plot(np.asarray(self.His_vol)/self.Vol_Max,"-")
+        plt.xlabel("Tempo [s]")
+        plt.ylabel("Cap. Vol. Reator [%]")
+
+        plt.subplot(2,3,4)
+        plt.plot(np.asarray(self.His_Temp_J) - 273.15,"-")
+        plt.xlabel("Tempo [s]")
+        plt.ylabel("Temp. Jaqueta [ºC]")
+        
+        plt.subplot(2,3,5)
+        plt.plot(np.asarray(self.His_Vaz_J),"-")
+        plt.xlabel("Tempo [s]")
+        plt.ylabel("Vazão Jaqueta [Litros/s]")
+
+        plt.subplot(2,3,6)
+        for j in range(0, len(self.Conc), 1):
+            mat = []
+            for k in range(0, n_s*t_tot,1):
+                mat.append(self.His_Conc[k][j])
+            plt.plot(np.asarray(mat),)
 
 class Controlador_PID:
     def __init__(self, Objeto:object, Alvo_Obs, Hist_Obs:list, Set_Point_Obs,
@@ -224,3 +265,86 @@ class Fonte:
     def Publish(self) -> None:
         pass
 
+Fonte_1 = Fonte(
+    Vaz_max= 40,
+    Raz_vaz= 1,
+    Temp= 50,
+    Conc=[0.5,0.5,0,0]
+)
+
+Linha_1 = Linha(
+    Entrada= Fonte_1
+)
+
+Nó_Mistura_1 = Nó_Mistura(
+    Entrada1= Linha_1,
+    Entrada2= Linha_1
+)
+
+Linha_2 = Linha(
+    Entrada= Nó_Mistura_1
+)
+
+Fonte_J = Fonte(
+    Vaz_max= 20,
+    Raz_vaz= 1,
+    Temp= 15,
+    Conc= []
+)
+
+Linha_J = Linha(
+    Entrada= Fonte_J
+)
+
+Reator = CSTR_C_Resfr(
+    Fonte_Alimentção= Linha_2,
+    Fonte_Jaqueta= Linha_J,
+    Raz_Vol_in= 0.4,
+    Raz_vaz_in= 0.2,
+    Raio= 1,
+    Altura= 2,
+    Area_Cobert_Jaqueta= 15,
+    Vol_Jaqueta= 2,
+    Temp_in= 50,
+    Conc_in= [0,0,0,0]
+)
+
+Linha_3 = Linha(
+    Entrada= Reator
+)
+
+Reciclo = Nó_Reciclo(
+    Entrada= Linha_3,
+    Raz_reciclo_in= 0.5
+)
+
+Linha_4 = Linha(
+    Entrada= Reciclo.Reciclo
+)
+
+Nó_Mistura_1.Fonte2 = Linha_4
+
+Linha_5 = Linha(
+    Reciclo.Saída
+)
+
+Sist = [
+    Fonte_1,
+    Linha_1,
+    Nó_Mistura_1,
+    Linha_2,
+    Fonte_J,
+    Linha_J,
+    Reator,
+    Linha_3,
+    Reciclo,
+    Linha_4,
+    Linha_5
+]
+
+for i in range(1 , n_s*t_tot, 1):
+    for Obj in Sist:
+        Obj.Update()
+
+for Obj in Sist:
+    Obj.Publish()
