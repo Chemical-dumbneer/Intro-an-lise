@@ -7,11 +7,11 @@ n_s = 200
 t_tot = 30
 dt = 1/n_s
 M_t = np.arange(0,t_tot,dt)
-
+print("Declarando Classes")
 class Linha:
     def __init__(self, Entrada) -> None:
         self.Temp = Entrada.Temp
-        self.Vaz = Entrada.vaz
+        self.Vaz = Entrada.Vaz
         self.Conc = Entrada.Conc
         self.Fonte = Entrada
     
@@ -217,7 +217,9 @@ class CSTR_C_Resfr:
             mat = []
             for k in range(0, n_s*t_tot,1):
                 mat.append(self.His_Conc[k][j])
-            plt.plot(np.asarray(mat),)
+            plt.plot(np.asarray(mat),"-")
+        plt.xlabel("Tempo [s]")
+        plt.ylabel("Concentração Molar [M]")
 
 class Controlador_PID:
     def __init__(self, Objeto:object, Alvo_Obs, Hist_Obs:list, Set_Point_Obs,
@@ -264,7 +266,7 @@ class Fonte:
     
     def Publish(self) -> None:
         pass
-
+print("Declarando Objetos")
 Fonte_1 = Fonte(
     Vaz_max= 40,
     Raz_vaz= 1,
@@ -342,9 +344,13 @@ Sist = [
     Linha_5
 ]
 
+print("Iterando simulação")
+
 for i in range(1 , n_s*t_tot, 1):
     for Obj in Sist:
         Obj.Update()
+        
+print("Gerando Gráficos")
 
 for Obj in Sist:
     Obj.Publish()
