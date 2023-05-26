@@ -3,8 +3,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 i = 0
-n_s = 200
-t_tot = 30
+n_s = 4
+t_tot = 2*60*60
 dt = 1/n_s
 M_t = np.arange(0,t_tot,dt)
 print("Declarando Classes")
@@ -30,7 +30,7 @@ class Nó_Mistura:
         self.Conc = []
 
         for j in range(0, len(Entrada1.Conc) - 1, 1):
-            self.Conc[j] = ((Entrada1.Conc[j]*Entrada1.Vaz) + (Entrada2.Conc[j]*Entrada2.Vaz))/self.Vaz
+            self.Conc.append(((Entrada1.Conc[j]*Entrada1.Vaz) + (Entrada2.Conc[j]*Entrada2.Vaz))/self.Vaz)
 
         self.Fonte1 = Entrada1
         self.Fonte2 = Entrada2
@@ -96,7 +96,7 @@ class CSTR_C_Resfr:
     Dados_Jaqueta.Densidade = 1000
 
     def K_arr(self, Temp):
-        return self.Dados_Reação.A * math.exp((-self.Dados_Reação['Ej'])/(8.314 * Temp))
+        return self.Dados_Reação.A * math.exp((-self.Dados_Reação.Ej)/(8.314 * Temp))
 
     def __init__(self, Fonte_Alimentção:Linha, Fonte_Jaqueta:Linha, Raz_Vol_in,
                  Raz_vaz_in, Raio, Altura, Area_Cobert_Jaqueta, Vol_Jaqueta,
@@ -148,13 +148,13 @@ class CSTR_C_Resfr:
         self.His_Vaz.append(self.Vaz)
 
         self.prod_reag = 1
-        for j in range(0, len(self.Conc), 1):
+        for j in range(0, len(self.Conc) - 1, 1):
             self.Mol_Reator[j]  = self.Conc[j] * self.Vol
             self.Mol_Entrada[j] = self.Fonte_Alimentação.Conc[j] * self.Fonte_Alimentação.Vaz * dt
             self.Mol_Saída[j]   = self.Conc[j] * self.Vaz * dt
 
             self.Mol_Reação[j]  = self.K_arr(self.Temp) * dt
-            for k in range(0, len(self.Conc), 1):
+            for k in range(0, len(self.Conc) - 1, 1):
                 if self.Dados_Reação.Matriz_reagente[k] < 0:
                     self.Mol_Reação[j] = self.Mol_Reação[j] * math.pow(self.Conc[k], -self.Dados_Reação.Matriz_reagente[k])
 
@@ -186,40 +186,40 @@ class CSTR_C_Resfr:
     def Publish(self) -> None:
 
         plt.subplot(2,3,1)
-        plt.plot(M_t,
-                 np.asarray(self.His_Temp) - 273.15,
-                 ls= "-")
+        plt.plot(M_t,np.asarray(self.His_Temp) - 273.15,"-")
         plt.xlabel("Tempo [s]")
         plt.ylabel("Temp. Reator [ºC]")
 
         plt.subplot(2,3,2)
-        plt.plot(np.asarray(self.His_Vaz),"-")
+        plt.plot(M_t,np.asarray(self.His_Vaz)*1000,"-")
         plt.xlabel("Tempo [s]")
         plt.ylabel("Vazão Reator [Litros/s]")
 
         plt.subplot(2,3,3)
-        plt.plot(np.asarray(self.His_vol)/self.Vol_Max,"-")
+        plt.plot(M_t,np.asarray(self.His_vol)/self.Vol_Max,"-")
         plt.xlabel("Tempo [s]")
         plt.ylabel("Cap. Vol. Reator [%]")
 
         plt.subplot(2,3,4)
-        plt.plot(np.asarray(self.His_Temp_J) - 273.15,"-")
+        plt.plot(M_t,np.asarray(self.His_Temp_J) - 273.15,"-")
         plt.xlabel("Tempo [s]")
         plt.ylabel("Temp. Jaqueta [ºC]")
         
         plt.subplot(2,3,5)
-        plt.plot(np.asarray(self.His_Vaz_J),"-")
+        plt.plot(M_t,np.asarray(self.His_Vaz_J)*1000,"-")
         plt.xlabel("Tempo [s]")
         plt.ylabel("Vazão Jaqueta [Litros/s]")
 
         plt.subplot(2,3,6)
-        for j in range(0, len(self.Conc), 1):
+        for j in range(0, len(self.Conc) - 1, 1):
             mat = []
             for k in range(0, n_s*t_tot,1):
                 mat.append(self.His_Conc[k][j])
-            plt.plot(np.asarray(mat),"-")
+            plt.plot(M_t,np.asarray(mat),"-", label= self.Dados_Reação.Nomes_reagente[j])
         plt.xlabel("Tempo [s]")
         plt.ylabel("Concentração Molar [M]")
+
+        plt.show()
 
 class Controlador_PID:
     def __init__(self, Objeto:object, Alvo_Obs, Hist_Obs:list, Set_Point_Obs,
@@ -255,10 +255,10 @@ class Controlador_PID:
 
 class Fonte:
     def __init__(self, Vaz_max, Raz_vaz, Temp, Conc:list) -> None:
-        self.Vaz_Max = Vaz_max
+        self.Vaz_Max = Vaz_max/1000
         self.Raz_Vaz = Raz_vaz
         self.Vaz = self.Raz_Vaz * self.Vaz_Max
-        self.Temp = Temp
+        self.Temp = Temp + 273.15
         self.Conc = Conc
 
     def Update(self) -> None:
@@ -266,91 +266,13 @@ class Fonte:
     
     def Publish(self) -> None:
         pass
-print("Declarando Objetos")
-Fonte_1 = Fonte(
-    Vaz_max= 40,
-    Raz_vaz= 1,
-    Temp= 50,
-    Conc=[0.5,0.5,0,0]
-)
 
-Linha_1 = Linha(
-    Entrada= Fonte_1
-)
-
-Nó_Mistura_1 = Nó_Mistura(
-    Entrada1= Linha_1,
-    Entrada2= Linha_1
-)
-
-Linha_2 = Linha(
-    Entrada= Nó_Mistura_1
-)
-
-Fonte_J = Fonte(
-    Vaz_max= 20,
-    Raz_vaz= 1,
-    Temp= 15,
-    Conc= []
-)
-
-Linha_J = Linha(
-    Entrada= Fonte_J
-)
-
-Reator = CSTR_C_Resfr(
-    Fonte_Alimentção= Linha_2,
-    Fonte_Jaqueta= Linha_J,
-    Raz_Vol_in= 0.4,
-    Raz_vaz_in= 0.2,
-    Raio= 1,
-    Altura= 2,
-    Area_Cobert_Jaqueta= 15,
-    Vol_Jaqueta= 2,
-    Temp_in= 50,
-    Conc_in= [0,0,0,0]
-)
-
-Linha_3 = Linha(
-    Entrada= Reator
-)
-
-Reciclo = Nó_Reciclo(
-    Entrada= Linha_3,
-    Raz_reciclo_in= 0.5
-)
-
-Linha_4 = Linha(
-    Entrada= Reciclo.Reciclo
-)
-
-Nó_Mistura_1.Fonte2 = Linha_4
-
-Linha_5 = Linha(
-    Reciclo.Saída
-)
-
-Sist = [
-    Fonte_1,
-    Linha_1,
-    Nó_Mistura_1,
-    Linha_2,
-    Fonte_J,
-    Linha_J,
-    Reator,
-    Linha_3,
-    Reciclo,
-    Linha_4,
-    Linha_5
-]
-
-print("Iterando simulação")
-
-for i in range(1 , n_s*t_tot, 1):
+def Run(Sist:list):
+    print("Iterando simulação")
+    for i in range(1 , n_s*t_tot, 1):
+        for Obj in Sist:
+            Obj.Update()
+            
+    print("Gerando Gráficos")
     for Obj in Sist:
-        Obj.Update()
-        
-print("Gerando Gráficos")
-
-for Obj in Sist:
-    Obj.Publish()
+        Obj.Publish()
