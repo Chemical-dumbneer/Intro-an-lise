@@ -43,6 +43,7 @@ Reator = Ob.CSTR_C_Resfr(
     Area_Cobert_Jaqueta= 158.64,
     Vol_Jaqueta= 0.88,
     Temp_in= 26.3,
+    Raio_Canal_Saída= 0.05,
     Conc_in= [0.4022,0.4022,0.097771,0.097771]
 )
 
@@ -71,7 +72,7 @@ Controlador_volume = Ob.Controlador_PID(
     Hist_Obs = Reator.His_vol,
     Set_Point_Obs = 0.7 * Reator.Vol_Max,
     Alvo_Ctrl = Reator.Raz_Vaz,
-    K_P= -1,
+    K_P= 0.005,
     K_D= 0,
     K_I= 0,
     Resp_Mín= 0,
@@ -84,9 +85,9 @@ Controlador_temp = Ob.Controlador_PID(
     Hist_Obs = Reator.His_Temp,
     Set_Point_Obs = 26.3,
     Alvo_Ctrl = Fonte_J.Raz_Vaz,
-    K_P= 1,
-    K_D= 1,
-    K_I= 1,
+    K_P= 0.005,
+    K_D= 0,
+    K_I= 0,
     Resp_Mín= 0,
     Resp_Max= 1
 )

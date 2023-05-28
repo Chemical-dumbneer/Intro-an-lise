@@ -85,54 +85,56 @@ class CSTR_C_Resfr:
     Dados_Reação = type('',(),{})()
     Dados_Reação.Matriz_reagente = [-1,-1,1,1]
     Dados_Reação.Nomes_reagente = ["A","B","C","D"]
-    Dados_Reação.Var_entalpia = -300
-    Dados_Reação.Densidade = 1000
-    Dados_Reação.Cp = 100
-    Dados_Reação.A = 10
-    Dados_Reação.Ej = 200
+    Dados_Reação.Var_entalpia = -69779999.9985
+    Dados_Reação.Densidade = 800.9232
+    Dados_Reação.Cp = 3140.1
+    Dados_Reação.A = 7.08e10
+    Dados_Reação.Ej = 69779999.9985
 
     Dados_Jaqueta = type('',(),{})()
-    Dados_Jaqueta.Cp = 100
-    Dados_Jaqueta.Densidade = 1000
+    Dados_Jaqueta.Cp = 4186.8
+    Dados_Jaqueta.Densidade = 997.9503
 
     def K_arr(self, Temp):
         return self.Dados_Reação.A * math.exp((-self.Dados_Reação.Ej)/(8.314 * Temp))
 
     def __init__(self, Fonte_Alimentção:Linha, Fonte_Jaqueta:Linha, Raz_Vol_in,
                  Raz_vaz_in, Raio, Altura, Area_Cobert_Jaqueta, Vol_Jaqueta,
-                 Temp_in, Conc_in:list) -> None:
+                 Temp_in, Raio_Canal_Saída, Conc_in:list) -> None:
         
         self.Fonte_Alimentação = Fonte_Alimentção
         self.Fonte_Jaqueta     = Fonte_Jaqueta
         self.Temp_Jaqueta      = self.Fonte_Jaqueta.Temp
         self.His_Temp_J        = []
         self.His_Vaz_J         = []
-        self.His_Temp_J.append(self.Temp_Jaqueta)
-        self.His_Vaz_J.append(self.Fonte_Jaqueta.Vaz)
+        self.His_Temp_J.append(float(self.Temp_Jaqueta))
+        self.His_Vaz_J.append(float(self.Fonte_Jaqueta.Vaz))
 
         self.A_tt        = Area_Cobert_Jaqueta
         self.Vol_Jaqueta = Vol_Jaqueta
-        self.U_tt        = 368 # vide https://www.tlv.com/global/BR/steam-theory/overall-heat-transfer-coefficient.html para mais info
+        self.U_tt        = 851.7395
 
         self.Vol_Max       = Altura * math.pi * math.pow(Raio,2)
         self.Vol           = self.Vol_Max * Raz_Vol_in
         self.Altura_Reator = Altura
 
         self.His_vol  = []
-        self.His_vol.append(self.Vol)
+        self.His_vol.append(float(self.Vol))
         self.Temp     = Temp_in + 273.15
         self.His_Temp = []
-        self.His_Temp.append(self.Temp)
+        self.His_Temp.append(float(self.Temp))
 
-        self.alfa    = math.pi * math.pow(0.1 * Raio,2) * math.sqrt(2*9.81)
+        self.Raio_Canal_Saída = Raio_Canal_Saída
+        self.alfa    = math.pi * math.pow(self.Raio_Canal_Saída,2) * math.sqrt(2*9.81)
         self.Vaz_max = self.alfa * math.sqrt(self.Altura_Reator * (self.Vol/self.Vol_Max))
         self.Vaz     = self.Vaz_max * Raz_vaz_in
 
         self.His_Vaz  = []
         self.His_Conc = []
-        self.His_Vaz.append(self.Vaz)
+        self.His_Vaz.append(float(self.Vaz))
         self.Conc     = Conc_in
-        self.His_Conc.append(self.Conc)
+        MConc = list(self.Conc)
+        self.His_Conc.append(MConc)
         self.Raz_Vaz  = 1
 
         self.Mol_Reator  = [0] * len(self.Conc)
@@ -143,9 +145,11 @@ class CSTR_C_Resfr:
     
     def Update(self) -> None:
         self.Vol = self.Vol + (self.Fonte_Alimentação.Vaz - self.Vaz) * dt
+        self.alfa    = math.pi * math.pow(self.Raio_Canal_Saída,2) * math.sqrt(2*9.81)
+        self.Vaz_max = self.alfa * math.sqrt(self.Altura_Reator * (self.Vol/self.Vol_Max))
         self.Vaz = self.Vaz_max * self.Raz_Vaz
-        self.His_vol.append(self.Vol)
-        self.His_Vaz.append(self.Vaz)
+        self.His_vol.append(float(self.Vol))
+        self.His_Vaz.append(float(self.Vaz))
 
         self.prod_reag = 1
         for j in range(0, len(self.Conc) - 1, 1):
@@ -156,7 +160,7 @@ class CSTR_C_Resfr:
             self.Mol_Reação[j]  = self.K_arr(self.Temp) * dt
             for k in range(0, len(self.Conc) - 1, 1):
                 if self.Dados_Reação.Matriz_reagente[k] < 0:
-                    self.Mol_Reação[j] = self.Mol_Reação[j] * math.pow(self.Conc[k], -self.Dados_Reação.Matriz_reagente[k])
+                    self.Mol_Reação[j] = self.Mol_Reação[j] * math.pow(self.Conc[k], - self.Dados_Reação.Matriz_reagente[k])
 
             self.Saldo_Molar[j] = self.Mol_Entrada[j] - self.Mol_Saída[j] + (self.Mol_Reação[j] * (self.Dados_Reação.Matriz_reagente[j]/abs(self.Dados_Reação.Matriz_reagente[j])))
             self.Mol_Reator[j]  = self.Mol_Reator[j] + self.Saldo_Molar[j]
@@ -164,24 +168,24 @@ class CSTR_C_Resfr:
             if self.Dados_Reação.Matriz_reagente[j] < 0:
                 self.prod_reag = self.prod_reag * math.pow(self.Conc[j], - self.Dados_Reação.Matriz_reagente[j])
 
-        self.His_Conc.append(self.Conc)
+        MConc = list(self.Conc)
+        self.His_Conc.append(MConc)
         # saldo de temperatura para o fluido reativo
-        self.Saldo_energia = (
-            ((self.His_Vaz[i-1] * self.His_Temp[i-1]) - (self.Fonte_Alimentação.Vaz * self.Fonte_Alimentação.Temp) -
-            (((self.His_vol[i-1] * self.K_arr(self.His_Temp[i-1]) * self.prod_reag * self.Dados_Reação.Var_entalpia) -
-            ((self.U_tt * self.A_tt * (self.Temp - self.Temp_Jaqueta))/(self.Dados_Reação.Densidade * self.Dados_Reação.Cp)))))/self.Vol
-        )
+        T_ant = self.Temp
+        f0t0 = self.Fonte_Alimentação.Vaz * self.Fonte_Alimentação.Temp
+        ft = self.Vaz * self.Temp
+        en_quim = (self.Vol * self.K_arr(self.Temp) * self.prod_reag * self.Dados_Reação.Var_entalpia) / (self.Dados_Reação.Densidade * self.Dados_Reação.Cp)
+        en_troc = (self.U_tt * self.A_tt * (self.Temp - self.Fonte_Jaqueta.Temp))/(self.Dados_Reação.Densidade * self.Dados_Reação.Cp)
+        self.Saldo_energia = (f0t0 - ft - en_quim - en_troc)
         self.Temp = self.Temp + self.Saldo_energia
-        self.His_Temp.append(self.Temp)
+        self.His_Temp.append(float(self.Temp))
         # saldo de temperatura para o fluido refrigerante
-        self.Saldo_energia = (
-            ((self.Fonte_Jaqueta.Vaz * (self.Temp_Jaqueta - self.Temp))/self.Vol_Jaqueta) +
-            ((self.U_tt * self.A_tt * (self.Temp - self.Temp_Jaqueta))/(self.Vol_Jaqueta * self.Dados_Jaqueta.Densidade * self.Dados_Jaqueta.Cp))
-        )
-
+        t1 = (self.Fonte_Jaqueta.Vaz * (self.Fonte_Jaqueta.Temp * self.Temp_Jaqueta))/self.Vol_Jaqueta
+        t2 = (self.U_tt * self.A_tt * (T_ant - self.Temp_Jaqueta)) / (self.Vol_Jaqueta * self.Dados_Jaqueta.Cp * self.Dados_Jaqueta.Densidade)
+        self.Saldo_energia = t1 + t2
         self.Temp_Jaqueta = self.Temp_Jaqueta + self.Saldo_energia
-        self.His_Temp_J.append(self.Temp_Jaqueta)
-        self.His_Vaz_J.append(self.Fonte_Jaqueta.Vaz)
+        self.His_Temp_J.append(float(self.Temp_Jaqueta))
+        self.His_Vaz_J.append(float(self.Fonte_Jaqueta.Vaz))
     
     def Publish(self) -> None:
 
@@ -196,7 +200,7 @@ class CSTR_C_Resfr:
         plt.ylabel("Vazão Reator [Litros/s]")
 
         plt.subplot(2,3,3)
-        plt.plot(M_t,np.asarray(self.His_vol)/self.Vol_Max,"-")
+        plt.plot(M_t,(np.asarray(self.His_vol)/self.Vol_Max) * 100,"-")
         plt.xlabel("Tempo [s]")
         plt.ylabel("Cap. Vol. Reator [%]")
 
@@ -214,7 +218,7 @@ class CSTR_C_Resfr:
         for j in range(0, len(self.Conc) - 1, 1):
             mat = []
             for k in range(0, n_s*t_tot,1):
-                mat.append(self.His_Conc[k][j])
+                mat.append(float(self.His_Conc[k][j]))
             plt.plot(M_t,np.asarray(mat),"-", label= self.Dados_Reação.Nomes_reagente[j])
         plt.xlabel("Tempo [s]")
         plt.ylabel("Concentração Molar [M]")
