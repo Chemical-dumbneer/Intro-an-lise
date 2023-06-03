@@ -73,6 +73,7 @@ Reator = Ob.CSTR_C_Resfr(
     Area_Cobert_Jaqueta= 158.64, # [m²] área de troca térmica do reator
     Vol_Jaqueta= 0.88, # [m³] volume interno da camisa de resfriamento
     Temp_in= 26.3, # [ºC] temperatura inicial do reator
+    Temp_in_Jaqueta= 26.3, # [ºC] temperatura inicial da camisa de resfriamento
     Conc_in= [0.4022*2,0.4022,0.097771,0.097771*2] # [M] matriz de concentrações molares iniciais dos elementos no reator
 )
 

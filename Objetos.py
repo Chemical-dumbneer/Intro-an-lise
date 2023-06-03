@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 n_s = 4
-t_tot = 10*60*60
+t_tot = 2*60*60
 dt = 1/n_s
 M_t = np.arange(0,t_tot,dt)
 print("Declarando Classes")
@@ -118,14 +118,14 @@ class CSTR_C_Resfr:
 
     def __init__(self, Fonte_Alimentção:Linha, Fonte_Jaqueta:Linha, Raz_Vol_in,
                  Raz_Saída, Raio, Altura, Area_Cobert_Jaqueta, Vol_Jaqueta,
-                 Temp_in, Raio_Canal_Saída, Conc_in:list, Dados_Reação:info_Fluido_Reativo, 
+                 Temp_in, Temp_in_Jaqueta, Raio_Canal_Saída, Conc_in:list, Dados_Reação:info_Fluido_Reativo, 
                  Dados_Jaqueta:info_Fluido_Refrigerante) -> None:
         
         self.Dados_Reação = Dados_Reação
         self.Dados_Jaqueta = Dados_Jaqueta
         self.Fonte_Alimentação = Fonte_Alimentção
         self.Fonte_Jaqueta     = Fonte_Jaqueta
-        self.Temp_Jaqueta      = self.Fonte_Jaqueta.Temp
+        self.Temp_Jaqueta      = [Temp_in_Jaqueta + 273.15]
         self.His_Temp_J        = []
         self.His_Vaz_J         = []
         self.His_Temp_J.append(float(self.Temp_Jaqueta[0]))
