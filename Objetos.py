@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 n_s = 4
-t_tot = 50
+t_tot = 2*60*60
 dt = 1/n_s
 M_t = np.arange(0,t_tot,dt)
 print("Declarando Classes")
@@ -82,13 +82,13 @@ class Nó_Reciclo:
 class CSTR_C_Resfr:
 
     Dados_Reação = type('',(),{})()
-    Dados_Reação.Matriz_reagente = [-1,-1,1,1]
-    Dados_Reação.Nomes_reagente = ["A","B","C","D"]
-    Dados_Reação.Var_entalpia = -31651800
+    Dados_Reação.Matriz_reagente = [-2,-1,1,2]
+    Dados_Reação.Nomes_reagente = ["AgNO3","Na2S","Ag2S","NaNO3"]
+    Dados_Reação.Var_entalpia = -60000
     Dados_Reação.Densidade = 800.9232
     Dados_Reação.Cp = 3140.1
     Dados_Reação.A = 7.08e10
-    Dados_Reação.Ej = 31651800
+    Dados_Reação.Ej = 80000
 
     Dados_Jaqueta = type('',(),{})()
     Dados_Jaqueta.Cp = 4186.8

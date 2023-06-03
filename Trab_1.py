@@ -6,14 +6,14 @@ Fonte_1 =Ob.Fonte(
     Vaz_max= 0.72, # [Litros/s] vazao máxima da fonte
     Raz_vaz= 1, # [x100%] razão de vazão da fonte
     Temp= 26.30, # [ºC] temperatura da fonte
-    Conc=[0.5,0.5,0,0] # [M] concentração da fonte
+    Conc=[1,0.5,0,0] # [M] concentração da fonte
 )
 # como o sistema exige retro-alimentação, estou criando uma fonte e linha falsos para pré-inicializar o nó de mistura
 Fonte_Placeholder = Ob.Fonte(
     Vaz_max= 0.72 * 0.2, # [Litros/s] vazão inicial do reator vezes a razão de reciclo do sistema
     Raz_vaz= 1, # 100% da vazão máxima jorrando
     Temp= 26.3, # [ºC] temperatura inicial do reator
-    Conc= [0.4022,0.4022,0.097771,0.097771] # [M] concentração inicial do reator
+    Conc= [0.4022*2,0.4022,0.097771,0.097771*2] # [M] concentração inicial do reator
 )
 
 Linha_falsa = Ob.Linha(
@@ -55,7 +55,7 @@ Reator = Ob.CSTR_C_Resfr(
     Vol_Jaqueta= 0.88, # [m³] volume interno da camisa de resfriamento
     Temp_in= 26.3, # [ºC] temperatura inicial do reator
     Raio_Canal_Saída= 0.05, # [metros] raio do canal de saída do reator (usado para calcular a vazão máxima em cada momento a depender da altura do nível d'água no reator)
-    Conc_in= [0.4022,0.4022,0.097771,0.097771] # [M] matriz de concentrações molares iniciais dos elementos no reator
+    Conc_in= [0.4022*2,0.4022,0.097771,0.097771*2] # [M] matriz de concentrações molares iniciais dos elementos no reator
 )
 
 Linha_3 = Ob.Linha(
