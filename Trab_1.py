@@ -1,5 +1,4 @@
 import Objetos as Ob
-import numpy as np
 
 print("Declarando Objetos")
 
@@ -107,7 +106,7 @@ Controlador_volume = Ob.Controlador_PID(
     K_I= 5e-8,
     Resp_Mín= 0, # resposta mínima da variável de controle
     Resp_Max= 1, # resposta máxima da variável de controle
-    Graf= True
+    Graf= False
 )
 
 Controlador_temp = Ob.Controlador_PID(
