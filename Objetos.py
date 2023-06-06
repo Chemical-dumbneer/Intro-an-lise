@@ -1,15 +1,16 @@
 import math
 import matplotlib.pyplot as plt
 import numpy as np
+from tqdm import tqdm
 
 n_s = 4
-t_tot = 2*60*60
+t_tot = 10*60*60
 dt = 1/n_s
 M_t = np.arange(0,t_tot,dt)
 print("Declarando Classes")
 
 class info_Fluido_Reativo:
-    def __init__(self, Mat_reag:list, Nomes_reag:list, Var_entalpia:int, Densidade:float, Cp:float, A:int, Ej:int) -> None:
+    def __init__(self, Nomes_reag:list, Var_entalpia:int, Densidade:float, Cp:float, A:int, Ej:int) -> None:
         """
         Informações sobre o fluído reativo do sistema
         
@@ -26,7 +27,6 @@ class info_Fluido_Reativo:
         Ej (int): [J/mol] Energia de ativação da reação química
 
         """
-        self.Matriz_reagente = Mat_reag
         self.Nomes_reagente = Nomes_reag
         self.Var_entalpia = Var_entalpia
         self.Densidade = Densidade
@@ -117,11 +117,12 @@ class CSTR_C_Resfr:
         return self.Dados_Reação.A * np.exp((-self.Dados_Reação.Ej)/(8.314 * Temp))
 
     def __init__(self, Fonte_Alimentção:Linha, Fonte_Jaqueta:Linha, Raz_Vol_in,
-                 Raz_Saída, Raio, Altura, Area_Cobert_Jaqueta, Vol_Jaqueta,
-                 Temp_in, Temp_in_Jaqueta, Raio_Canal_Saída, Conc_in:list, Dados_Reação:info_Fluido_Reativo, 
-                 Dados_Jaqueta:info_Fluido_Refrigerante) -> None:
+                 Vaz_Saída_in, Raio, Altura, Area_Cobert_Jaqueta, Vol_Jaqueta,
+                 Temp_in, Temp_in_Jaqueta, Raio_Canal_Saída, Conc_in:list, Dados_Reação:info_Fluido_Reativo,
+                 Matriz_Reação:list, Dados_Jaqueta:info_Fluido_Refrigerante) -> None:
         
         self.Dados_Reação = Dados_Reação
+        self.Matriz_Reação = Matriz_Reação
         self.Dados_Jaqueta = Dados_Jaqueta
         self.Fonte_Alimentação = Fonte_Alimentção
         self.Fonte_Jaqueta     = Fonte_Jaqueta
@@ -151,8 +152,8 @@ class CSTR_C_Resfr:
         self.Raio_Canal_Saída = Raio_Canal_Saída
         self.alfa    = math.pi * math.pow(self.Raio_Canal_Saída,2) * math.sqrt(2*9.81)
         self.Vaz_max = self.alfa * math.sqrt(self.Altura_Reator * (float(self.Vol[0])/self.Vol_Max))
-        self.Raz_Vaz = [Raz_Saída]
-        self.Vaz     = self.Vaz_max * self.Raz_Vaz[0]
+        self.Raz_Vaz = [Vaz_Saída_in/(self.Vaz_max*1000)]
+        self.Vaz     = Vaz_Saída_in/1000
 
         self.His_Vaz  = [float(self.Vaz)]
         self.His_Conc = []
@@ -184,14 +185,14 @@ class CSTR_C_Resfr:
             k_arrhenius = float(self.K_arr(self.Temp[0]))
             self.Mol_Reação[j]  = k_arrhenius * dt
             for k in range(0, len(self.Conc), 1):
-                if self.Dados_Reação.Matriz_reagente[k] < 0:
-                    self.Mol_Reação[j] = self.Mol_Reação[j] * math.pow(self.Conc[k], - self.Dados_Reação.Matriz_reagente[k])
+                if self.Matriz_Reação[k] < 0:
+                    self.Mol_Reação[j] = self.Mol_Reação[j] * math.pow(self.Conc[k], - self.Matriz_Reação[k])
 
-            self.Saldo_Molar[j] = self.Mol_Entrada[j] - self.Mol_Saída[j] + (self.Mol_Reação[j] * (self.Dados_Reação.Matriz_reagente[j]/abs(self.Dados_Reação.Matriz_reagente[j])))
+            self.Saldo_Molar[j] = self.Mol_Entrada[j] - self.Mol_Saída[j] + (self.Mol_Reação[j] * (self.Matriz_Reação[j]/abs(self.Matriz_Reação[j])))
             self.Mol_Reator[j]  = self.Mol_Reator[j] + self.Saldo_Molar[j] * dt
             self.Conc[j]        = self.Mol_Reator[j] / self.Vol[0]
-            if self.Dados_Reação.Matriz_reagente[j] < 0:
-                self.prod_reag = self.prod_reag * math.pow(self.Conc[j], - self.Dados_Reação.Matriz_reagente[j])
+            if self.Matriz_Reação[j] < 0:
+                self.prod_reag = self.prod_reag * math.pow(self.Conc[j], - self.Matriz_Reação[j])
 
         MConc = list(self.Conc)
         self.His_Conc.append(MConc)
@@ -218,26 +219,30 @@ class CSTR_C_Resfr:
         plt.title("Parâmetros do Reator X Tempo")
         plt.subplot(2,3,1)
         plt.plot(M_t,np.asarray(self.His_Temp) - 273.15,"o", markersize= 1)
+        plt.ylim((min(self.His_Temp) - 273.15)*(0.95),(max(self.His_Temp) - 273.15)*(1.05))
         plt.xlabel("Tempo [s]")
         plt.ylabel("Temp. Reator [ºC]")
 
         plt.subplot(2,3,2)
         plt.plot(M_t,np.asarray(self.His_Vaz)*1000,"o", markersize= 1)
+        plt.ylim(min(self.His_Vaz)*(0.95*1000),max(self.His_Vaz)*(1.05*1000))
         plt.xlabel("Tempo [s]")
         plt.ylabel("Vazão Reator [Litros/s]")
 
         plt.subplot(2,3,3)
-        plt.plot(M_t,(np.asarray(self.His_vol)/self.Vol_Max) * 100,"o", markersize= 1)
+        plt.plot(M_t,(np.asarray(self.His_vol)*1000),"o", markersize= 1)
         plt.xlabel("Tempo [s]")
-        plt.ylabel("Cap. Vol. Reator [%]")
+        plt.ylabel("Cap. Vol. Reator [Litros]")
 
         plt.subplot(2,3,4)
         plt.plot(M_t,np.asarray(self.His_Temp_J) - 273.15,"o", markersize= 1)
+        plt.ylim((min(self.His_Temp_J) - 273.15)*(0.95),(max(self.His_Temp_J) - 273.15)*(1.05))
         plt.xlabel("Tempo [s]")
         plt.ylabel("Temp. Jaqueta [ºC]")
         
         plt.subplot(2,3,5)
         plt.plot(M_t,np.asarray(self.His_Vaz_J)*1000,"o", markersize= 1)
+        plt.ylim(min(self.His_Vaz_J)*(0.95)*1000,max(self.His_Vaz_J)*(1.05)*1000)
         plt.xlabel("Tempo [s]")
         plt.ylabel("Vazão Jaqueta [Litros/s]")
 
@@ -312,10 +317,12 @@ class Fonte:
 
 def Run(Sist:list):
     print("Iterando simulação")
+    progress_bar = tqdm(total= 100, unit= "%")
     for i in range(1 , n_s*t_tot, 1):
         #print(i)
         for Obj in Sist:
             Obj.Update(i)
+            progress_bar.update(1/(len(Obj)*n_s*t_tot))
             
     print("Gerando Gráficos")
     for Obj in Sist:

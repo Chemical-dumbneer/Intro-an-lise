@@ -3,7 +3,6 @@ import Objetos as Ob
 print("Declarando Objetos")
 
 Fluido_Reativo = Ob.info_Fluido_Reativo(
-    Mat_reag= [-2,-1,1,2],
     Nomes_reag= ["AgNO3","Na2S","Ag2S","NaNO3"],
     Var_entalpia= -60000,
     Densidade= 800.9232,
@@ -49,8 +48,8 @@ Linha_2 = Ob.Linha(
 )
 
 Fonte_J = Ob.Fonte(
-    Vaz_max= 0.5, # [Litros/s] vazão máxima do fluido refrigerante
-    Raz_vaz= 0, # [x100%] razão de abertura do canal de vazão
+    Vaz_max= 1, # [Litros/s] vazão máxima do fluido refrigerante
+    Raz_vaz= 0.00361, # [x100%] razão de abertura do canal de vazão
     Temp= 25.0, # [ºC] temperatura da fonte do fluido refrigerante
     Conc= [] # [M] Concentração dos elementos no fluido refrigerante (vazio)
 )
@@ -63,17 +62,18 @@ Reator = Ob.CSTR_C_Resfr(
     Fonte_Alimentção= Linha_2, # fonte de alimentação do reator
     Fonte_Jaqueta= Linha_J, # fonte de alimentação do fluido refrigerante
     Dados_Reação= Fluido_Reativo,
+    Matriz_Reação= [-2,-1,1,2],
     Dados_Jaqueta= Fluido_Refrigerante,
     Raz_Vol_in= 0.7, # [x100%] razão de enchimento inicial do reator
     Raio_Canal_Saída= 0.05, # [metros] raio do canal de saída do reator (usado para calcular a vazão máxima em cada momento a depender da altura do nível d'água no reator)
-    Raz_Saída= 0.025, # [x100%] razão da vazão inicial do reator
+    Vaz_Saída_in= 0.9, # [Litros/s] vazão inicial do reator
     Raio= 0.75, # [metros] raio do reator
     Altura= 1.8, # [metros] altura do reator
     Area_Cobert_Jaqueta= 158.64, # [m²] área de troca térmica do reator
     Vol_Jaqueta= 0.88, # [m³] volume interno da camisa de resfriamento
     Temp_in= 26.3, # [ºC] temperatura inicial do reator
-    Temp_in_Jaqueta= 26.3, # [ºC] temperatura inicial da camisa de resfriamento
-    Conc_in= [0.4022*2,0.4022,0.097771,0.097771*2] # [M] matriz de concentrações molares iniciais dos elementos no reator
+    Temp_in_Jaqueta= 26.299851, # [ºC] temperatura inicial da camisa de resfriamento
+    Conc_in= [0.793,0.295,0.205,0.205] # [M] matriz de concentrações molares iniciais dos elementos no reator
 )
 
 Linha_3 = Ob.Linha(
@@ -115,9 +115,9 @@ Controlador_temp = Ob.Controlador_PID(
     Hist_Obs = Reator.His_Temp, # variável do reator a ser registrada
     Set_Point_Obs = 26.3 + 273.15, # set-point da variável observada
     Alvo_Ctrl = Fonte_J.Raz_Vaz, # variável de controle
-    K_P= 2,
-    K_D= 1e-3,
-    K_I= 0,
+    K_P= 1e-2,
+    K_D= 5e-1,
+    K_I= 5e-8,
     Resp_Mín= 0, # resposta mínima da variável de controle
     Resp_Max= 1, # resposta máxima da variável de controle
     Graf= False
