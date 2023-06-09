@@ -49,7 +49,7 @@ Linha_2 = Ob.Linha(
 
 Fonte_J = Ob.Fonte(
     Vaz_max= 1, # [Litros/s] vazão máxima do fluido refrigerante
-    Raz_vaz= 0.00361, # [x100%] razão de abertura do canal de vazão
+    Raz_vaz= 3.6162405495373164e-03, # [x100%] razão de abertura do canal de vazão
     Temp= 25.0, # [ºC] temperatura da fonte do fluido refrigerante
     Conc= [] # [M] Concentração dos elementos no fluido refrigerante (vazio)
 )
@@ -73,7 +73,7 @@ Reator = Ob.CSTR_C_Resfr(
     Vol_Jaqueta= 0.88, # [m³] volume interno da camisa de resfriamento
     Temp_in= 26.3, # [ºC] temperatura inicial do reator
     Temp_in_Jaqueta= 26.299851, # [ºC] temperatura inicial da camisa de resfriamento
-    Conc_in= [0.793,0.295,0.205,0.205] # [M] matriz de concentrações molares iniciais dos elementos no reator
+    Conc_in= [0.7957506311649223,0.2958595495467816,0.2041404508146229,0.2041404508146229] # [M] matriz de concentrações molares iniciais dos elementos no reator
 )
 
 Linha_3 = Ob.Linha(
@@ -99,7 +99,8 @@ Controlador_volume = Ob.Controlador_PID(
     Objeto = Reator, # Objeto de controle do reator
     Alvo_Obs = Reator.Vol, # variável do reator a ser observada
     Hist_Obs = Reator.His_vol, # variavel do reator a ser registrada
-    Set_Point_Obs = 0.7 * Reator.Vol_Max, # set-point da variável observada
+    Reg_Set_Point= Reator.Vol_S_P,
+    Set_Point_Obs = (0.7) * Reator.Vol_Max, # set-point da variável observada
     Alvo_Ctrl = Reator.Raz_Vaz, # variável de controle
     K_P= 7e-3,
     K_D= 1e+0,
@@ -113,11 +114,12 @@ Controlador_temp = Ob.Controlador_PID(
     Objeto = Reator, # objeto de controle do reator
     Alvo_Obs = Reator.Temp, # variável do reator a ser observada
     Hist_Obs = Reator.His_Temp, # variável do reator a ser registrada
+    Reg_Set_Point= Reator.Temp_S_P,
     Set_Point_Obs = 26.3 + 273.15, # set-point da variável observada
     Alvo_Ctrl = Fonte_J.Raz_Vaz, # variável de controle
-    K_P= 1e-2,
-    K_D= 5e-1,
-    K_I= 5e-8,
+    K_P= 5e-7,
+    K_D= 2e-2,
+    K_I= 5e-9,
     Resp_Mín= 0, # resposta mínima da variável de controle
     Resp_Max= 1, # resposta máxima da variável de controle
     Graf= False

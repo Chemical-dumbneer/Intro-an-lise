@@ -155,6 +155,8 @@ class CSTR_C_Resfr:
         self.Raz_Vaz = [Vaz_Saída_in/(self.Vaz_max*1000)]
         self.Vaz     = Vaz_Saída_in/1000
 
+        self.Vol_S_P = []
+        self.Temp_S_P = []
         self.His_Vaz  = [float(self.Vaz)]
         self.His_Conc = []
         self.Conc     = Conc_in
@@ -218,31 +220,35 @@ class CSTR_C_Resfr:
         self.fig = plt.figure()
         plt.title("Parâmetros do Reator X Tempo")
         plt.subplot(2,3,1)
-        plt.plot(M_t,np.asarray(self.His_Temp) - 273.15,"o", markersize= 1)
-        plt.ylim((min(self.His_Temp) - 273.15)*(0.95),(max(self.His_Temp) - 273.15)*(1.05))
+        plt.plot(M_t,np.asarray(self.Temp_S_P) - 273.15,"-", markersize= 1, label= "Set Point", color= "r")
+        plt.plot(M_t,np.asarray(self.His_Temp) - 273.15,"o", markersize= 1, label= "Temp. Obs")
+        plt.ylim((min(*self.His_Temp,*self.Temp_S_P) - 273.15)*(0.9),(max(*self.His_Temp,*self.Temp_S_P) - 273.15)*(1.1))
+        plt.legend()
         plt.xlabel("Tempo [s]")
         plt.ylabel("Temp. Reator [ºC]")
 
         plt.subplot(2,3,2)
         plt.plot(M_t,np.asarray(self.His_Vaz)*1000,"o", markersize= 1)
-        plt.ylim(min(self.His_Vaz)*(0.95*1000),max(self.His_Vaz)*(1.05*1000))
+        plt.ylim(min(self.His_Vaz)*(0.9*1000),max(self.His_Vaz)*(1.1*1000))
         plt.xlabel("Tempo [s]")
         plt.ylabel("Vazão Reator [Litros/s]")
 
         plt.subplot(2,3,3)
-        plt.plot(M_t,(np.asarray(self.His_vol)*1000),"o", markersize= 1)
+        plt.plot(M_t,(np.asarray(self.Vol_S_P)*1000),"-", markersize= 1, label= "Set Point", color="r")
+        plt.plot(M_t,(np.asarray(self.His_vol)*1000),"o", markersize= 1, label= "Vol. Obs")
+        plt.legend()
         plt.xlabel("Tempo [s]")
         plt.ylabel("Cap. Vol. Reator [Litros]")
 
         plt.subplot(2,3,4)
         plt.plot(M_t,np.asarray(self.His_Temp_J) - 273.15,"o", markersize= 1)
-        plt.ylim((min(self.His_Temp_J) - 273.15)*(0.95),(max(self.His_Temp_J) - 273.15)*(1.05))
+        plt.ylim((min(self.His_Temp_J) - 273.15)*(0.9),(max(self.His_Temp_J) - 273.15)*(1.1))
         plt.xlabel("Tempo [s]")
         plt.ylabel("Temp. Jaqueta [ºC]")
         
         plt.subplot(2,3,5)
         plt.plot(M_t,np.asarray(self.His_Vaz_J)*1000,"o", markersize= 1)
-        plt.ylim(min(self.His_Vaz_J)*(0.95)*1000,max(self.His_Vaz_J)*(1.05)*1000)
+        plt.ylim(min(self.His_Vaz_J)*(0.9)*1000,max(self.His_Vaz_J)*(1.1)*1000)
         plt.xlabel("Tempo [s]")
         plt.ylabel("Vazão Jaqueta [Litros/s]")
 
@@ -255,15 +261,18 @@ class CSTR_C_Resfr:
         plt.xlabel("Tempo [s]")
         plt.ylabel("Concentração Molar [M]")
         plt.legend()
+        print(self.His_Conc[len(self.His_Conc)-1])
 
 class Controlador_PID:
-    def __init__(self, Objeto:object, Alvo_Obs:list, Hist_Obs:list, Set_Point_Obs,
+    def __init__(self, Objeto:object, Alvo_Obs:list, Hist_Obs:list, Reg_Set_Point:list, Set_Point_Obs,
                  Alvo_Ctrl, K_P, K_D, K_I, Resp_Mín, Resp_Max, Graf:bool) -> None:
         
         self.Objeto = Objeto
         self.Alvo_Obs = Alvo_Obs
         self.His_Obs = Hist_Obs
         self.Set_Point = Set_Point_Obs
+        self.Reg_Set_Point = Reg_Set_Point
+        self.Reg_Set_Point.append(self.Set_Point)
         self.Alvo_ctrl = Alvo_Ctrl
         self.P = K_P
         self.D = K_D
@@ -277,6 +286,7 @@ class Controlador_PID:
             self.Hist_Resp = [0]
     
     def Update(self,i) -> None:
+        self.Reg_Set_Point.append(self.Set_Point)
         self.Val_Der = (self.His_Obs[i] - self.His_Obs[i-1])/dt
         self.Val_Int = self.Val_Int + ((self.His_Obs[i-1] + self.His_Obs[i] - (2 * self.Set_Point)) / 2) *dt
         self.Var = self.Alvo_Obs[0] - self.Set_Point
@@ -318,11 +328,12 @@ class Fonte:
 def Run(Sist:list):
     print("Iterando simulação")
     progress_bar = tqdm(total= 100, unit= "%")
+    progress_bar.update(100/(len(Sist)*n_s*t_tot))
     for i in range(1 , n_s*t_tot, 1):
         #print(i)
         for Obj in Sist:
             Obj.Update(i)
-            progress_bar.update(1/(len(Obj)*n_s*t_tot))
+            progress_bar.update(100/(len(Sist)*n_s*t_tot))
             
     print("Gerando Gráficos")
     for Obj in Sist:
