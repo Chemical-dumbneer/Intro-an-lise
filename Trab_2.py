@@ -227,6 +227,13 @@ Controlador_temp_R2 = Ob.Controlador_PID(
     Graf= False
 )
 
+Perturbador = Ob.Perturbador_Step(
+    Ligado= False,
+    Variavel= Controlador_temp_R2.Set_Point, # variável a ser alterada (precisa set uma lista de 1 item)
+    Incremento= 30, # quanto será adicionado á variável
+    A_Partir_de= 3000 # [s] a partir de quantos segundos a perturbação passará a valer
+)
+
 Sist = [ # juntando todos os objetos reais do sistema a serem iterados na simulação
     Fonte_1,
     Linha_1,
@@ -250,7 +257,8 @@ Sist = [ # juntando todos os objetos reais do sistema a serem iterados na simula
     Controlador_volume_R1,
     Controlador_temp_R1,
     Controlador_volume_R2,
-    Controlador_temp_R2
+    Controlador_temp_R2,
+    Perturbador
 ]
 
 Ob.Run(Sist) # rodar a simulação contendo os objetos desejados
