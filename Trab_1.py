@@ -17,7 +17,7 @@ Fonte_1 =Ob.Fonte(
     Vaz_max= 0.72, # [Litros/s] vazao máxima da fonte
     Raz_vaz= 1, # [x100%] razão de vazão da fonte
     Temp= 26.30, # [ºC] temperatura da fonte
-    Conc=[1,0.5,0,0] # [M] concentração da fonte
+    Conc=[2,1,0,0] # [M] concentração da fonte
 )
 # como o sistema exige retro-alimentação, estou criando uma fonte e linha falsos para pré-inicializar o nó de mistura
 Fonte_Placeholder = Ob.Fonte(
@@ -45,9 +45,9 @@ Linha_2 = Ob.Linha(
 )
 
 Fonte_J = Ob.Fonte(
-    Vaz_max= 1, # [Litros/s] vazão máxima do fluido refrigerante
-    Raz_vaz= 0.0036162866715301, # [x100%] razão de abertura do canal de vazão
-    Temp= 25.0, # [ºC] temperatura da fonte do fluido refrigerante
+    Vaz_max= 5, # [Litros/s] vazão máxima do fluido refrigerante
+    Raz_vaz= 0.00020988042907171814, # [x100%] razão de abertura do canal de vazão
+    Temp= 15, # [ºC] temperatura da fonte do fluido refrigerante
     Conc= [] # [M] Concentração dos elementos no fluido refrigerante (vazio)
 )
 
@@ -62,8 +62,8 @@ Reator = Ob.CSTR_C_Resfr(
     Fonte_Jaqueta= Linha_J, # fonte de alimentação do fluido refrigerante
     Dados_Reação= Fluido_Reativo,
     Matriz_Reação= [-2,-1,1,2],
-    Var_entalpia= -60000,
-    Ej= 80000,
+    Var_entalpia= -697720.9561,
+    Ej= 69772.09561,
     A= 7.08e10,
     Dados_Jaqueta= Fluido_Refrigerante,
     Raz_Vol_in= 0.7, # [x100%] razão de enchimento inicial do reator
@@ -73,9 +73,9 @@ Reator = Ob.CSTR_C_Resfr(
     Altura= 1.8, # [metros] altura do reator
     Area_Cobert_Jaqueta= 158.64, # [m²] área de troca térmica do reator
     Vol_Jaqueta= 0.88, # [m³] volume interno da camisa de resfriamento
-    Temp_in= 26.3000000000000, # [ºC] temperatura inicial do reator
-    Temp_in_Jaqueta= 26.29985464522963, # [ºC] temperatura inicial da camisa de resfriamento
-    Conc_in= [0.7958156301291995, 0.2958159531694972, 0.20418404682054936, 0.20418404682054936] # [M] matriz de concentrações molares iniciais dos elementos no reator
+    Temp_in= 26.3, # [ºC] temperatura inicial do reator
+    Temp_in_Jaqueta= 26.299633327836773, # [ºC] temperatura inicial da camisa de resfriamento
+    Conc_in= [0.557057426829574, 0.05706724191948196, 0.4429142369335909, 0.4429142369335909] # [M] matriz de concentrações molares iniciais dos elementos no reator
 )
 
 Linha_3 = Ob.Linha(
@@ -117,11 +117,11 @@ Controlador_temp = Ob.Controlador_PID(
     Alvo_Obs = Reator.Temp, # variável do reator a ser observada
     Hist_Obs = Reator.His_Temp, # variável do reator a ser registrada
     Reg_Set_Point= Reator.Temp_S_P,
-    Set_Point_Obs = 26.3 + 273.15, # set-point da variável observada
+    Set_Point_Obs = ((26.3*1.1) + 273.15), # set-point da variável observada
     Alvo_Ctrl = Fonte_J.Raz_Vaz, # variável de controle
-    K_P= 64e-4,#5e-7,
-    K_D= 1,#2e-2,
-    K_I= 0,#5e-9,
+    K_P= 5e-3,#5e-7,
+    K_D= 1e-0,#2e-2,
+    K_I= 0,
     Resp_Mín= 0, # resposta mínima da variável de controle
     Resp_Max= 1, # resposta máxima da variável de controle
     Graf= False
@@ -130,8 +130,8 @@ Controlador_temp = Ob.Controlador_PID(
 Perturbador = Ob.Perturbador_Step(
     Ligado= False,
     Variavel= Controlador_volume.Set_Point, # variável a ser alterada (precisa set uma lista de 1 item)
-    Incremento= -0.1, # quanto será adicionado á variável
-    A_Partir_de= 3000  # [s] a partir de quantos segundos a perturbação passará a valer
+    Incremento= 0.1, # quanto será adicionado á variável
+    A_Partir_de= 50  # [s] a partir de quantos segundos a perturbação passará a valer
 )
 
 Sist = [ # juntando todos os objetos reais do sistema a serem iterados na simulação

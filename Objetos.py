@@ -112,7 +112,12 @@ class Nó_Reciclo:
 class CSTR_C_Resfr:
 
     def K_arr(self, Temp):
-        return self.A * np.exp((-self.Ej)/(8.314 * Temp))
+        a = self.A
+        b = int(-self.Ej)
+        c = int(8.314 * Temp)
+        d = b // c
+        val =  a* np.exp(d)
+        return val
 
     def __init__(self, Fonte_Alimentção:Linha, Fonte_Jaqueta:Linha, Raz_Vol_in, A:int, Ej:int,
                  Vaz_Saída_in, Raio, Altura, Area_Cobert_Jaqueta, Vol_Jaqueta, Var_entalpia:int,
@@ -206,7 +211,8 @@ class CSTR_C_Resfr:
         T_ant = self.Temp[0]
         f0t0 = self.Fonte_Alimentação.Vaz * self.Fonte_Alimentação.Temp[0]
         ft = self.Vaz * self.Temp[0]
-        en_quim = (self.Vol[0] * self.K_arr(self.Temp[0]) * self.prod_reag * self.Var_entalpia) / (self.Dados_Reação.Densidade * self.Dados_Reação.Cp)
+        k_arr = self.K_arr(self.Temp[0])
+        en_quim = (self.Vol[0] * k_arr * self.prod_reag * self.Var_entalpia) / (self.Dados_Reação.Densidade * self.Dados_Reação.Cp)
         en_troc = (Q)/(self.Dados_Reação.Densidade * self.Dados_Reação.Cp)
         self.Saldo_energia = (f0t0 - ft - en_quim - en_troc)/self.Vol[0]
         self.Temp[0] = self.Temp[0] + self.Saldo_energia * dt
@@ -267,11 +273,11 @@ class CSTR_C_Resfr:
 
         if self.MVF == True:
             print("\n\n\nValores finais para: " + self.Name + "========================================")
-            print("\nTemperatura Final do Reator:" + str(self.His_Temp[-1] - 273.15) + " ºC")
-            print("\nVazão Final do Reator:" + str(self.His_Vaz[-1] * 1000) + " Litros/s")
-            print("\nCap. Vol. Final do Reator:" + str(self.His_vol[-1] * 1000) + " Litros (" + str(self.His_vol[-1]/self.Vol_Max) + " x100%)")
-            print("\nTemperatura Final da Jaqueta:" + str(self.His_Temp_J[-1] - 273.15) + " ºC")
-            print("\nVazão Final da Jaqueta:" + str(self.His_Vaz_J[-1] * 1000) + " Litros/s")
+            print("\nTemperatura Final do Reator: " + str(self.His_Temp[-1] - 273.15) + " ºC")
+            print("\nVazão Final do Reator: " + str(self.His_Vaz[-1] * 1000) + " Litros/s")
+            print("\nCap. Vol. Final do Reator: " + str(self.His_vol[-1] * 1000) + " Litros (" + str(self.His_vol[-1]/self.Vol_Max) + " x100%)")
+            print("\nTemperatura Final da Jaqueta: " + str(self.His_Temp_J[-1] - 273.15) + " ºC")
+            print("\nVazão Final da Jaqueta: " + str((self.His_Vaz_J[-1])/self.Fonte_Jaqueta.Fonte.Vaz_Max) + " x100%")
             print("\nMatriz Final de Concentração Molar: \n" + str(self.His_Conc[-1]))
 
 class CSTR_C_Aquec:
