@@ -4,8 +4,8 @@ import numpy as np
 from tqdm.auto import tqdm
 
 
-n_s = 4
-t_tot = 10*60*60
+n_s = 50
+t_tot = int(20*60*60)
 dt = 1/n_s
 M_t = np.arange(0,t_tot,dt)
 print("Declarando Classes")
@@ -55,21 +55,35 @@ class Linha:
 class Nó_Mistura:
     def __init__(self, Entrada1:Linha, Entrada2:Linha) -> None:
         self.Vaz = Entrada1.Vaz + Entrada2.Vaz
-        self.Temp = [((Entrada1.Temp[0] * Entrada1.Vaz)+(Entrada2.Temp[0] * Entrada2.Vaz))/self.Vaz]
+        if self.Vaz == 0:
+            self.Temp = [0]
+        else:
+            self.Temp = [((Entrada1.Temp[0] * Entrada1.Vaz)+(Entrada2.Temp[0] * Entrada2.Vaz))/self.Vaz]
+        
         self.Conc = []
 
         for j in range(0, len(Entrada1.Conc), 1):
-            self.Conc.append(((Entrada1.Conc[j]*Entrada1.Vaz) + (Entrada2.Conc[j]*Entrada2.Vaz))/self.Vaz)
+            if self.Vaz == 0:
+                self.Conc.append(0)
+            else:
+                self.Conc.append(((Entrada1.Conc[j]*Entrada1.Vaz) + (Entrada2.Conc[j]*Entrada2.Vaz))/self.Vaz)
+            
 
         self.Fonte1 = Entrada1
         self.Fonte2 = Entrada2
     
     def Update(self,i) -> None:
         self.Vaz = self.Fonte1.Vaz + self.Fonte2.Vaz
-        self.Temp[0] = ((self.Fonte1.Temp[0] * self.Fonte1.Vaz)+(self.Fonte2.Temp[0] * self.Fonte2.Vaz))/self.Vaz
+        if self.Vaz == 0:
+            self.Temp[0] = 0
+        else:
+            self.Temp[0] = ((self.Fonte1.Temp[0] * self.Fonte1.Vaz)+(self.Fonte2.Temp[0] * self.Fonte2.Vaz))/self.Vaz
 
         for j in range(0, len(self.Conc), 1):
-            self.Conc[j] = ((self.Fonte1.Conc[j]*self.Fonte1.Vaz)+(self.Fonte2.Conc[j]*self.Fonte2.Vaz))/self.Vaz
+            if self.Vaz == 0:
+                self.Conc[j] = 0
+            else:
+                self.Conc[j] = ((self.Fonte1.Conc[j]*self.Fonte1.Vaz)+(self.Fonte2.Conc[j]*self.Fonte2.Vaz))/self.Vaz
 
     def Publish(self) -> None:
         pass
@@ -198,7 +212,7 @@ class CSTR_C_Resfr:
                 if self.Matriz_Reação[k] < 0:
                     self.Mol_Reação[j] = self.Mol_Reação[j] * math.pow(self.Conc[k], - self.Matriz_Reação[k])
 
-            self.Saldo_Molar[j] = self.Mol_Entrada[j] - self.Mol_Saída[j] + (self.Mol_Reação[j] * np.sign(self.Matriz_Reação[j]))
+            self.Saldo_Molar[j] = self.Mol_Entrada[j] - self.Mol_Saída[j] + (self.Mol_Reação[j] * (self.Matriz_Reação[j]))
             self.Mol_Reator[j]  = self.Mol_Reator[j] + self.Saldo_Molar[j] * dt
             self.Conc[j]        = self.Mol_Reator[j] / self.Vol[0]
             if self.Matriz_Reação[j] < 0:
