@@ -21,10 +21,10 @@ Fonte_1 =Ob.Fonte(
 )
 # como o sistema exige retro-alimentação, estou criando uma fonte e linha falsos para pré-inicializar o nó de mistura
 Fonte_Placeholder = Ob.Fonte(
-    Vaz_max= 0.72 * 0.2, # [Litros/s] vazão inicial do reator vezes a razão de reciclo do sistema
+    Vaz_max= 0.72 ,#* 0.2, # [Litros/s] vazão inicial do reator vezes a razão de reciclo do sistema
     Raz_vaz= 1, # 100% da vazão máxima jorrando
     Temp= 26.3, # [ºC] temperatura inicial do reator
-    Conc= [0.4022*2,0.4022,0.097771,0.097771*2] # [M] concentração inicial do reator
+    Conc= [0.08762235968978731, 0.7569098679311016, 7.048998582730179, 14.097997165460358] # [M] concentração inicial do reator
 )
 
 Linha_falsa = Ob.Linha(
@@ -46,8 +46,8 @@ Linha_2 = Ob.Linha(
 
 Fonte_J = Ob.Fonte(
     Vaz_max= 5, # [Litros/s] vazão máxima do fluido refrigerante
-    Raz_vaz= 0.009734052626483055, # [x100%] razão de abertura do canal de vazão
-    Temp= 15, # [ºC] temperatura da fonte do fluido refrigerante
+    Raz_vaz= 0.29721795914265103, # [x100%] razão de abertura do canal de vazão
+    Temp= 5, # [ºC] temperatura da fonte do fluido refrigerante
     Conc= [] # [M] Concentração dos elementos no fluido refrigerante (vazio)
 )
 
@@ -62,20 +62,20 @@ Reator = Ob.CSTR_C_Resfr(
     Fonte_Jaqueta= Linha_J, # fonte de alimentação do fluido refrigerante
     Dados_Reação= Fluido_Reativo,
     Matriz_Reação= [-2,-1,1,2],
-    Var_entalpia= -180000.0,
+    Var_entalpia= -10000000.0,
     Ej= 60000.0,
     A= 7.08e10,
     Dados_Jaqueta= Fluido_Refrigerante,
     Raz_Vol_in= 0.7, # [x100%] razão de enchimento inicial do reator
     Raio_Canal_Saída= 0.05, # [metros] raio do canal de saída do reator (usado para calcular a vazão máxima em cada momento a depender da altura do nível d'água no reator)
-    Vaz_Saída_in= 0.7200000006332309, # [Litros/s] vazão inicial do reator
+    Vaz_Saída_in= 0.72, # [Litros/s] vazão inicial do reator
     Raio= 0.75, # [metros] raio do reator
     Altura= 1.8, # [metros] altura do reator
     Area_Cobert_Jaqueta= 158.64, # [m²] área de troca térmica do reator
     Vol_Jaqueta= 0.88, # [m³] volume interno da camisa de resfriamento
-    Temp_in= 26.3, # [ºC] temperatura inicial do reator
-    Temp_in_Jaqueta= 26.283019092707775, # [ºC] temperatura inicial da camisa de resfriamento
-    Conc_in= [0.06593456833108244, 1.339267837454775, 6.305183661357663, 12.610367322715327] # [M] matriz de concentrações molares iniciais dos elementos no reator
+    Temp_in= 26.29999996842531, # [ºC] temperatura inicial do reator
+    Temp_in_Jaqueta= 25.36419788958466, # [ºC] temperatura inicial da camisa de resfriamento
+    Conc_in= [0.21427523754250494, 0.12578978357614717, 7.869133122656061, 15.738266245312122] # [M] matriz de concentrações molares iniciais dos elementos no reator
 )
 
 Linha_3 = Ob.Linha(
@@ -102,11 +102,11 @@ Controlador_volume = Ob.Controlador_PID(
     Alvo_Obs = Reator.Vol, # variável do reator a ser observada
     Hist_Obs = Reator.His_vol, # variavel do reator a ser registrada
     Reg_Set_Point= Reator.Vol_S_P,
-    Set_Point_Obs = (0.7) * Reator.Vol_Max, # set-point da variável observada
+    Set_Point_Obs = (0.7*1.0) * Reator.Vol_Max, # set-point da variável observada
     Alvo_Ctrl = Reator.Raz_Vaz, # variável de controle
     K_P= 7e-3,
     K_D= 1e+0,
-    K_I= 5e-8,
+    K_I= 0,#5e-8,
     Resp_Mín= 0, # resposta mínima da variável de controle
     Resp_Max= 1, # resposta máxima da variável de controle
     Graf= False
@@ -117,21 +117,21 @@ Controlador_temp = Ob.Controlador_PID(
     Alvo_Obs = Reator.Temp, # variável do reator a ser observada
     Hist_Obs = Reator.His_Temp, # variável do reator a ser registrada
     Reg_Set_Point= Reator.Temp_S_P,
-    Set_Point_Obs = ((26.3) + 273.15), # set-point da variável observada
+    Set_Point_Obs = ((26.3*1.0) + 273.15), # set-point da variável observada
     Alvo_Ctrl = Fonte_J.Raz_Vaz, # variável de controle
-    K_P= 5e-3,#5e-7,
-    K_D= 1e-1,#2e-2,
-    K_I= 0,
+    K_P= 5,#5,
+    K_D= -5,#5,#1e-1,
+    K_I= 5e-3,
     Resp_Mín= 0, # resposta mínima da variável de controle
     Resp_Max= 1, # resposta máxima da variável de controle
-    Graf= False
+    Graf= True
 )
 
 Perturbador = Ob.Perturbador_Step(
     Ligado= False,
-    Variavel= Controlador_volume.Set_Point, # variável a ser alterada (precisa set uma lista de 1 item)
-    Incremento= 0.1, # quanto será adicionado á variável
-    A_Partir_de= 50  # [s] a partir de quantos segundos a perturbação passará a valer
+    Variavel= Controlador_temp.Set_Point, # variável a ser alterada (precisa set uma lista de 1 item)
+    Incremento= -5, # quanto será adicionado á variável
+    A_Partir_de= Ob.t_tot*0.3  # [s] a partir de quantos segundos a perturbação passará a valer
 )
 
 Sist = [ # juntando todos os objetos reais do sistema a serem iterados na simulação

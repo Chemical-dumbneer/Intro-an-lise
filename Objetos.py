@@ -285,7 +285,7 @@ class CSTR_C_Resfr:
         plt.ylabel("Concentração Molar [M]")
         plt.legend()
 
-        if self.MVF == True:
+        if (self.MVF == True):
             print("\n\n\nValores finais para: " + self.Name + "========================================")
             print("\nTemperatura Final do Reator: " + str(self.His_Temp[-1] - 273.15) + " ºC")
             print("\nVazão Final do Reator: " + str(self.His_Vaz[-1] * 1000) + " Litros/s")
@@ -431,7 +431,7 @@ class CSTR_C_Aquec:
         plt.ylabel("Concentração Molar [M]")
         plt.legend()
 
-        if self.MVF == True:
+        if (self.MVF == True):
             print("\n\n\nValores finais para: " + self.Name + "========================================")
             print("\nTemperatura Final do Reator:" + str(self.His_Temp[-1] - 273.15) + " ºC")
             print("\nVazão Final do Reator:" + str(self.His_Vaz[-1] * 1000) + " Litros/s")
@@ -458,9 +458,13 @@ class Controlador_PID:
         self.Resp_Max = Resp_Max
         self.Val_Der = 1
         self.Val_Int = 0
-        self.Graf = Graf,
-        if self.Graf == True:
-            self.Hist_Resp = [0]
+        self.Graf = Graf
+        self.Base = float(Alvo_Ctrl[0])
+        if (self.Graf == True):
+            self.Hist_P = [0]
+            self.Hist_I = [0]
+            self.Hist_D = [0]
+            self.Hist_Var = [0]
     
     def Update(self,i) -> None:
         self.Reg_Set_Point.append(self.Set_Point[0])
@@ -470,23 +474,41 @@ class Controlador_PID:
         P = self.P * self.Var
         D = self.D * self.Val_Der
         I = self.I * self.Val_Int
-        self.Resp = P + D + I
-        self.Alvo_ctrl[0] = self.Alvo_ctrl[0] + self.Resp
+        self.Resp = self.Base + P + D + I
+        self.Alvo_ctrl[0] = self.Resp
         if self.Alvo_ctrl[0] > self.Resp_Max:
             self.Alvo_ctrl[0] = self.Resp_Max
         elif self.Alvo_ctrl[0] < self.Resp_Min:
             self.Alvo_ctrl[0] = self.Resp_Min
 
-        if self.Graf == True:
-            self.Hist_Resp.append(self.Resp)
+        if (self.Graf == True):
+            self.Hist_P.append(P)
+            self.Hist_I.append(I)
+            self.Hist_D.append(D)
+            self.Hist_Var.append(self.Var)
 
     def Publish(self) -> None:
-        if self.Graf == True:
-            self.fig = plt.figure()
-            plt.plot(M_t,np.asarray(self.Hist_Resp,),"o", markersize= 1)
+        if (self.Graf == True):
+            self.fig = plt.figure("Respostas do Controlador X Tempo")
+            plt.subplot(4,1,1)
+            plt.plot(M_t,np.asarray(self.Hist_P,),"o", markersize= 1)
             plt.xlabel("Tempo [s]")
-            plt.ylabel("Resposta do Controlador")
-            plt.title("Resposta do Controlador X Tempo")      
+            plt.ylabel("Resposta Proporcional")
+
+            plt.subplot(4,1,2)
+            plt.plot(M_t,np.asarray(self.Hist_D,),"o", markersize= 1)
+            plt.xlabel("Tempo [s]")
+            plt.ylabel("Resposta Diferencial")
+
+            plt.subplot(4,1,3)
+            plt.plot(M_t,np.asarray(self.Hist_I,),"o", markersize= 1)
+            plt.xlabel("Tempo [s]")
+            plt.ylabel("Resposta Integral")
+
+            plt.subplot(4,1,4)
+            plt.plot(M_t,np.asarray(self.Hist_Var,),"o", markersize= 1, color="r")
+            plt.xlabel("Tempo [s]")
+            plt.ylabel("Erro Observado")
 
 class Fonte:
     def __init__(self, Vaz_max, Raz_vaz, Temp, Conc:list) -> None:
