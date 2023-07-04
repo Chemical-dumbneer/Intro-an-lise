@@ -46,7 +46,7 @@ Linha_2 = Ob.Linha(
 
 Fonte_J = Ob.Fonte(
     Vaz_max= 5, # [Litros/s] vazão máxima do fluido refrigerante
-    Raz_vaz= 0.29721795914265103, # [x100%] razão de abertura do canal de vazão
+    Raz_vaz= 0.29720569541429015, # [x100%] razão de abertura do canal de vazão
     Temp= 5, # [ºC] temperatura da fonte do fluido refrigerante
     Conc= [] # [M] Concentração dos elementos no fluido refrigerante (vazio)
 )
@@ -73,9 +73,10 @@ Reator = Ob.CSTR_C_Resfr(
     Altura= 1.8, # [metros] altura do reator
     Area_Cobert_Jaqueta= 158.64, # [m²] área de troca térmica do reator
     Vol_Jaqueta= 0.88, # [m³] volume interno da camisa de resfriamento
-    Temp_in= 26.29999996842531, # [ºC] temperatura inicial do reator
-    Temp_in_Jaqueta= 25.36419788958466, # [ºC] temperatura inicial da camisa de resfriamento
-    Conc_in= [0.21427523754250494, 0.12578978357614717, 7.869133122656061, 15.738266245312122] # [M] matriz de concentrações molares iniciais dos elementos no reator
+    Temp_in= 26.3, # [ºC] temperatura inicial do reator
+    Temp_in_Jaqueta= 25.3642346, # [ºC] temperatura inicial da camisa de resfriamento
+    Conc_in= [0.22426178202043817, 0.11483166480750001, 7.884433149272131, 15.768866298544262], # [M] matriz de concentrações molares iniciais dos elementos no reator
+    Plotar_grafico= True
 )
 
 Linha_3 = Ob.Linha(
@@ -104,9 +105,9 @@ Controlador_volume = Ob.Controlador_PID(
     Reg_Set_Point= Reator.Vol_S_P,
     Set_Point_Obs = (0.7*1.0) * Reator.Vol_Max, # set-point da variável observada
     Alvo_Ctrl = Reator.Raz_Vaz, # variável de controle
-    K_P= 7e-3,
+    K_P= 7e-0,
     K_D= 1e+0,
-    K_I= 0,#5e-8,
+    K_I= 5e-8,
     Resp_Mín= 0, # resposta mínima da variável de controle
     Resp_Max= 1, # resposta máxima da variável de controle
     Graf= False
@@ -119,12 +120,12 @@ Controlador_temp = Ob.Controlador_PID(
     Reg_Set_Point= Reator.Temp_S_P,
     Set_Point_Obs = ((26.3*1.0) + 273.15), # set-point da variável observada
     Alvo_Ctrl = Fonte_J.Raz_Vaz, # variável de controle
-    K_P= 5,#5,
-    K_D= -5,#5,#1e-1,
-    K_I= 5e-3,
+    K_P= 10,#5,
+    K_D= 5,#5,#1e-1,
+    K_I= 8e-8,
     Resp_Mín= 0, # resposta mínima da variável de controle
     Resp_Max= 1, # resposta máxima da variável de controle
-    Graf= True
+    Graf= False
 )
 
 Perturbador = Ob.Perturbador_Step(

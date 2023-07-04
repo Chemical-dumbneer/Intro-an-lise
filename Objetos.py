@@ -5,7 +5,7 @@ from tqdm.auto import tqdm
 
 
 n_s = 50
-t_tot = int(20*60*60)
+t_tot = int(4*60*60)
 dt = 1/n_s
 M_t = np.arange(0,t_tot,dt)
 print("Declarando Classes")
@@ -133,7 +133,7 @@ class CSTR_C_Resfr:
         val =  a* np.exp(d)
         return val
 
-    def __init__(self, Fonte_Alimentção:Linha, Fonte_Jaqueta:Linha, Raz_Vol_in, A:int, Ej:int,
+    def __init__(self, Fonte_Alimentção:Linha, Fonte_Jaqueta:Linha, Raz_Vol_in, A:int, Ej:int, Plotar_grafico:bool,
                  Vaz_Saída_in, Raio, Altura, Area_Cobert_Jaqueta, Vol_Jaqueta, Var_entalpia:int,
                  Temp_in, Temp_in_Jaqueta, Raio_Canal_Saída, Conc_in:list, Dados_Reação:info_Fluido_Reativo,
                  Matriz_Reação:list, Dados_Jaqueta:info_Fluido_Refrigerante, Nome_Reator:str, Mostrar_Val_Finais:bool) -> None:
@@ -190,6 +190,8 @@ class CSTR_C_Resfr:
         self.Mol_Saída   = [0] * len(self.Conc)
         self.Mol_Reação  = [0] * len(self.Conc)
         self.Saldo_Molar = [0] * len(self.Conc)
+
+        self.Plotar = Plotar_grafico
     
     def Update(self,i) -> None:
         self.Vol[0] = self.Vol[0] + (self.Fonte_Alimentação.Vaz - self.Vaz) * dt
@@ -240,51 +242,52 @@ class CSTR_C_Resfr:
         self.His_Vaz_J.append(float(self.Fonte_Jaqueta.Vaz))
     
     def Publish(self) -> None:
-        self.fig = plt.figure("Parâmetros de " + self.Name + " X Tempo")
+        if self.Plotar:
+            self.fig = plt.figure("Parâmetros de " + self.Name + " X Tempo")
 
-        plt.subplot(2,3,1)
-        plt.plot(M_t,np.asarray(self.Temp_S_P) - 273.15,"-", markersize= 1, label= "Set Point", color= "r")
-        plt.plot(M_t,np.asarray(self.His_Temp) - 273.15,"o", markersize= 1, label= "Temp. Obs")
-        #plt.ylim((min(*self.His_Temp,*self.Temp_S_P) - 273.15)*(0.9),(max(*self.His_Temp,*self.Temp_S_P) - 273.15)*(1.1))
-        plt.legend()
-        plt.xlabel("Tempo [s]")
-        plt.ylabel("Temp. Reator [ºC]")
+            plt.subplot(2,3,1)
+            plt.plot(M_t,np.asarray(self.Temp_S_P) - 273.15,"-", markersize= 1, label= "Set Point", color= "r")
+            plt.plot(M_t,np.asarray(self.His_Temp) - 273.15,"o", markersize= 1, label= "Temp. Obs")
+            plt.ylim((min(*self.His_Temp,*self.Temp_S_P) - 273.15)*(0.9),(max(*self.His_Temp,*self.Temp_S_P) - 273.15)*(1.1))
+            plt.legend()
+            plt.xlabel("Tempo [s]")
+            plt.ylabel("Temp. Reator [ºC]")
 
-        plt.subplot(2,3,2)
-        plt.plot(M_t,np.asarray(self.His_Vaz)*1000,"o", markersize= 1)
-        #plt.ylim(min(self.His_Vaz)*(0.9*1000),max(self.His_Vaz)*(1.1*1000))
-        plt.xlabel("Tempo [s]")
-        plt.ylabel("Vazão Reator [Litros/s]")
+            plt.subplot(2,3,2)
+            plt.plot(M_t,np.asarray(self.His_Vaz)*1000,"o", markersize= 1)
+            plt.ylim(min(self.His_Vaz)*(0.9*1000),max(self.His_Vaz)*(1.1*1000))
+            plt.xlabel("Tempo [s]")
+            plt.ylabel("Vazão Reator [Litros/s]")
 
-        plt.subplot(2,3,3)
-        plt.plot(M_t,(np.asarray(self.Vol_S_P)*1000),"-", markersize= 1, label= "Set Point", color="r")
-        plt.plot(M_t,(np.asarray(self.His_vol)*1000),"o", markersize= 1, label= "Vol. Obs")
-        plt.legend()
-        plt.xlabel("Tempo [s]")
-        plt.ylabel("Cap. Vol. Reator [Litros]")
+            plt.subplot(2,3,3)
+            plt.plot(M_t,(np.asarray(self.Vol_S_P)*1000),"-", markersize= 1, label= "Set Point", color="r")
+            plt.plot(M_t,(np.asarray(self.His_vol)*1000),"o", markersize= 1, label= "Vol. Obs")
+            plt.legend()
+            plt.xlabel("Tempo [s]")
+            plt.ylabel("Cap. Vol. Reator [Litros]")
 
-        plt.subplot(2,3,4)
-        plt.plot(M_t,np.asarray(self.His_Temp_J) - 273.15,"o", markersize= 1)
-        #plt.ylim((min(self.His_Temp_J) - 273.15)*(0.9),(max(self.His_Temp_J) - 273.15)*(1.1))
-        plt.xlabel("Tempo [s]")
-        plt.ylabel("Temp. Jaqueta [ºC]")
+            plt.subplot(2,3,4)
+            plt.plot(M_t,np.asarray(self.His_Temp_J) - 273.15,"o", markersize= 1)
+            plt.ylim((min(self.His_Temp_J) - 273.15)*(0.9),(max(self.His_Temp_J) - 273.15)*(1.1))
+            plt.xlabel("Tempo [s]")
+            plt.ylabel("Temp. Jaqueta [ºC]")
+            
+            plt.subplot(2,3,5)
+            plt.plot(M_t,np.asarray(self.His_Vaz_J)*1000,"o", markersize= 1)
+            plt.ylim(min(self.His_Vaz_J)*(0.9)*1000,max(self.His_Vaz_J)*(1.1)*1000)
+            plt.xlabel("Tempo [s]")
+            plt.ylabel("Vazão Jaqueta [Litros/s]")
+
+            plt.subplot(2,3,6)
+            for j in range(0, len(self.Conc), 1):
+                mat = []
+                for k in range(0, n_s*t_tot,1):
+                    mat.append(float(self.His_Conc[k][j]))
+                plt.plot(M_t,np.asarray(mat),"o", label= self.Dados_Reação.Nomes_reagente[j], markersize= 1)
+            plt.xlabel("Tempo [s]")
+            plt.ylabel("Concentração Molar [M]")
+            plt.legend()
         
-        plt.subplot(2,3,5)
-        plt.plot(M_t,np.asarray(self.His_Vaz_J)*1000,"o", markersize= 1)
-        #plt.ylim(min(self.His_Vaz_J)*(0.9)*1000,max(self.His_Vaz_J)*(1.1)*1000)
-        plt.xlabel("Tempo [s]")
-        plt.ylabel("Vazão Jaqueta [Litros/s]")
-
-        plt.subplot(2,3,6)
-        for j in range(0, len(self.Conc), 1):
-            mat = []
-            for k in range(0, n_s*t_tot,1):
-                mat.append(float(self.His_Conc[k][j]))
-            plt.plot(M_t,np.asarray(mat),"o", label= self.Dados_Reação.Nomes_reagente[j], markersize= 1)
-        plt.xlabel("Tempo [s]")
-        plt.ylabel("Concentração Molar [M]")
-        plt.legend()
-
         if (self.MVF == True):
             print("\n\n\nValores finais para: " + self.Name + "========================================")
             print("\nTemperatura Final do Reator: " + str(self.His_Temp[-1] - 273.15) + " ºC")
@@ -299,7 +302,7 @@ class CSTR_C_Aquec:
     def K_arr(self, Temp):
         return self.A * np.exp((-self.Ej)/(8.314 * Temp))
 
-    def __init__(self, Fonte_Alimentção:Linha, Raz_Vol_in, Vaz_Saída_in, Raio, Altura, Temp_in, A:int, Ej:int,
+    def __init__(self, Fonte_Alimentção:Linha, Raz_Vol_in, Vaz_Saída_in, Raio, Altura, Temp_in, A:int, Ej:int, Plotar_graficos:bool,
                  Vaz_Mássica_Vapor_Máxima, Raz_vaz_Vap_in, Ent_mass_Vapor, Ent_mass_Líq, Raio_Canal_Saída, Var_entalpia:int,
                  Conc_in:list, Dados_Reação:info_Fluido_Reativo, Matriz_Reação:list, Nome_Reator:str, Mostrar_Val_Finais:bool) -> None:
         
@@ -351,6 +354,8 @@ class CSTR_C_Aquec:
         self.Mol_Saída   = [0] * len(self.Conc)
         self.Mol_Reação  = [0] * len(self.Conc)
         self.Saldo_Molar = [0] * len(self.Conc)
+
+        self.Plotar = Plotar_graficos
     
     def Update(self,i) -> None:
         self.Vaz_Vap = self.Vaz_Vap_Max * self.Raz_Vaz_Vap[0]
@@ -393,43 +398,44 @@ class CSTR_C_Aquec:
         self.His_Temp.append(float(self.Temp[0]))
     
     def Publish(self) -> None:
-        self.fig = plt.figure("Parâmetros de " + self.Name + " X Tempo")
-        plt.subplot(2,3,1)
-        plt.plot(M_t,np.asarray(self.Temp_S_P) - 273.15,"-", markersize= 1, label= "Set Point", color= "r")
-        plt.plot(M_t,np.asarray(self.His_Temp) - 273.15,"o", markersize= 1, label= "Temp. Obs")
-        #plt.ylim((min(*self.His_Temp,*self.Temp_S_P) - 273.15)*(0.9),(max(*self.His_Temp,*self.Temp_S_P) - 273.15)*(1.1))
-        plt.legend()
-        plt.xlabel("Tempo [s]")
-        plt.ylabel("Temp. Reator [ºC]")
+        if self.Plotar:
+            self.fig = plt.figure("Parâmetros de " + self.Name + " X Tempo")
+            plt.subplot(2,3,1)
+            plt.plot(M_t,np.asarray(self.Temp_S_P) - 273.15,"-", markersize= 1, label= "Set Point", color= "r")
+            plt.plot(M_t,np.asarray(self.His_Temp) - 273.15,"o", markersize= 1, label= "Temp. Obs")
+            plt.ylim((min(*self.His_Temp,*self.Temp_S_P) - 273.15)*(0.9),(max(*self.His_Temp,*self.Temp_S_P) - 273.15)*(1.1))
+            plt.legend()
+            plt.xlabel("Tempo [s]")
+            plt.ylabel("Temp. Reator [ºC]")
 
-        plt.subplot(2,3,2)
-        plt.plot(M_t,np.asarray(self.His_Vaz)*1000,"o", markersize= 1)
-        #plt.ylim(min(self.His_Vaz)*(0.9*1000),max(self.His_Vaz)*(1.1*1000))
-        plt.xlabel("Tempo [s]")
-        plt.ylabel("Vazão Reator [Litros/s]")
+            plt.subplot(2,3,2)
+            plt.plot(M_t,np.asarray(self.His_Vaz)*1000,"o", markersize= 1)
+            plt.ylim(min(self.His_Vaz)*(0.9*1000),max(self.His_Vaz)*(1.1*1000))
+            plt.xlabel("Tempo [s]")
+            plt.ylabel("Vazão Reator [Litros/s]")
 
-        plt.subplot(2,3,3)
-        plt.plot(M_t,(np.asarray(self.Vol_S_P)*1000),"-", markersize= 1, label= "Set Point", color="r")
-        plt.plot(M_t,(np.asarray(self.His_vol)*1000),"o", markersize= 1, label= "Vol. Obs")
-        plt.legend()
-        plt.xlabel("Tempo [s]")
-        plt.ylabel("Cap. Vol. Reator [Litros]")
-        
-        plt.subplot(2,3,5)
-        plt.plot(M_t,np.asarray(self.His_Vaz_Vap),"o", markersize= 1)
-        #plt.ylim(min(self.His_Vaz_Vap)*(0.9),max(self.His_Vaz_Vap)*(1.1))
-        plt.xlabel("Tempo [s]")
-        plt.ylabel("Vazão Vapor Saturado [kg/s]")
+            plt.subplot(2,3,3)
+            plt.plot(M_t,(np.asarray(self.Vol_S_P)*1000),"-", markersize= 1, label= "Set Point", color="r")
+            plt.plot(M_t,(np.asarray(self.His_vol)*1000),"o", markersize= 1, label= "Vol. Obs")
+            plt.legend()
+            plt.xlabel("Tempo [s]")
+            plt.ylabel("Cap. Vol. Reator [Litros]")
+            
+            plt.subplot(2,3,5)
+            plt.plot(M_t,np.asarray(self.His_Vaz_Vap),"o", markersize= 1)
+            plt.ylim(min(self.His_Vaz_Vap)*(0.9),max(self.His_Vaz_Vap)*(1.1))
+            plt.xlabel("Tempo [s]")
+            plt.ylabel("Vazão Vapor Saturado [kg/s]")
 
-        plt.subplot(2,3,6)
-        for j in range(0, len(self.Conc), 1):
-            mat = []
-            for k in range(0, n_s*t_tot,1):
-                mat.append(float(self.His_Conc[k][j]))
-            plt.plot(M_t,np.asarray(mat),"o", label= self.Dados_Reação.Nomes_reagente[j], markersize= 1)
-        plt.xlabel("Tempo [s]")
-        plt.ylabel("Concentração Molar [M]")
-        plt.legend()
+            plt.subplot(2,3,6)
+            for j in range(0, len(self.Conc), 1):
+                mat = []
+                for k in range(0, n_s*t_tot,1):
+                    mat.append(float(self.His_Conc[k][j]))
+                plt.plot(M_t,np.asarray(mat),"o", label= self.Dados_Reação.Nomes_reagente[j], markersize= 1)
+            plt.xlabel("Tempo [s]")
+            plt.ylabel("Concentração Molar [M]")
+            plt.legend()
 
         if (self.MVF == True):
             print("\n\n\nValores finais para: " + self.Name + "========================================")
