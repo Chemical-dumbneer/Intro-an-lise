@@ -5,7 +5,7 @@ from tqdm.auto import tqdm
 
 
 n_s = 50
-t_tot = int(4*60*60)
+t_tot = int(1*60*60)
 dt = 1/n_s
 M_t = np.arange(0,t_tot,dt)
 print("Declarando Classes")

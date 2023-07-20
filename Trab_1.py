@@ -45,8 +45,8 @@ Linha_2 = Ob.Linha(
 )
 
 Fonte_J = Ob.Fonte(
-    Vaz_max= 5, # [Litros/s] vazão máxima do fluido refrigerante
-    Raz_vaz= 0.29720569541429015, # [x100%] razão de abertura do canal de vazão
+    Vaz_max= 5*3, # [Litros/s] vazão máxima do fluido refrigerante
+    Raz_vaz= 0.29720569541429015/3, # [x100%] razão de abertura do canal de vazão
     Temp= 5, # [ºC] temperatura da fonte do fluido refrigerante
     Conc= [] # [M] Concentração dos elementos no fluido refrigerante (vazio)
 )
@@ -103,7 +103,7 @@ Controlador_volume = Ob.Controlador_PID(
     Alvo_Obs = Reator.Vol, # variável do reator a ser observada
     Hist_Obs = Reator.His_vol, # variavel do reator a ser registrada
     Reg_Set_Point= Reator.Vol_S_P,
-    Set_Point_Obs = (0.7*1.0) * Reator.Vol_Max, # set-point da variável observada
+    Set_Point_Obs = ((0.7 + 0.2) *1.0) * Reator.Vol_Max, # set-point da variável observada
     Alvo_Ctrl = Reator.Raz_Vaz, # variável de controle
     K_P= 7e-0,
     K_D= 1e+0,
@@ -118,7 +118,7 @@ Controlador_temp = Ob.Controlador_PID(
     Alvo_Obs = Reator.Temp, # variável do reator a ser observada
     Hist_Obs = Reator.His_Temp, # variável do reator a ser registrada
     Reg_Set_Point= Reator.Temp_S_P,
-    Set_Point_Obs = ((26.3*1.0) + 273.15), # set-point da variável observada
+    Set_Point_Obs = ((26.3 + 0) * 1.0) + 273.15, # set-point da variável observada
     Alvo_Ctrl = Fonte_J.Raz_Vaz, # variável de controle
     K_P= 10,#5,
     K_D= 5,#5,#1e-1,
