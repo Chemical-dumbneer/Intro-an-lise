@@ -29,15 +29,15 @@ class Linha:
     def __init__(self, Entrada:any) -> None:
         
         self.Fonte = Entrada
-        self.Cs_Vaz = Entrada.Cs_Vaz
-        self.Cs_Temp = Entrada.Cs_Temp
-        self.Cs_Conc = Entrada.Cs_Conc
+        self.Cs_Vaz = [float(Entrada.Cs_Vaz[0])]
+        self.Cs_Temp = [float(Entrada.Cs_Temp[0])]
+        self.Cs_Conc = [float(Entrada.Cs_Conc[0])]
 
     def Update(self) -> None:
 
-        self.Cs_Vaz = self.Fonte.Cs_Vaz
-        self.Cs_Temp = self.Fonte.Cs_Temp
-        self.Cs_Conc = self.Fonte.Cs_Conc
+        self.Cs_Vaz[0] = float(self.Fonte.Cs_Vaz[0])
+        self.Cs_Temp[0] = float(self.Fonte.Cs_Temp[0])
+        self.Cs_Conc[0] = float(self.Fonte.Cs_Conc[0])
 
     def Vectorize(self) -> None:
         pass
@@ -53,7 +53,7 @@ class Fonte(object):
 
         self.Cs_Vaz = [self.Raz_Vaz[0] * self.Vaz_Max]
         self.Cs_Temp = [Temp + 273.15]
-        self.Cs_Conc = Conc
+        self.Cs_Conc = [Conc]
 
         self.Output = Linha(self)
 
@@ -70,17 +70,17 @@ class Fonte(object):
         
 class Nó_2_p_1(object):
     def Calc_Temp(self) -> None:
-        if self.Cs_Vaz == 0:
-            self.Cs_Temp = 0
+        if self.Cs_Vaz[0] == 0:
+            self.Cs_Temp[0] = 0
         else:
-            self.Cs_Temp = ((self.Fonte_1.Cs_Vaz * self.Fonte_1.Cs_Temp) + (self.Fonte_2.Cs_Vaz * self.Fonte_2.Cs_Temp))/self.Cs_Vaz
+            self.Cs_Temp[0] = ((self.Fonte_1.Cs_Vaz[0] * self.Fonte_1.Cs_Temp[0]) + (self.Fonte_2.Cs_Vaz[0] * self.Fonte_2.Cs_Temp[0]))/self.Cs_Vaz[0]
 
     def Calc_Conc(self, init:bool) -> None:
         if init:
             self.Cs_Conc = []
 
         for j in range(0, len(self.Fonte_1.Cs_Conc), 1):
-            Conc = ((self.Fonte_1.Cs_Conc[j] * self.Fonte_1.Cs_Vaz) + (self.Fonte_2.Cs_Conc[j] * self.Fonte_2.Cs_Vaz))/self.Cs_Vaz    
+            Conc = ((self.Fonte_1.Cs_Conc[j] * self.Fonte_1.Cs_Vaz[0]) + (self.Fonte_2.Cs_Conc[j] * self.Fonte_2.Cs_Vaz[0]))/self.Cs_Vaz[0]    
             if init:
                 self.Cs_Conc.append(Conc)
             else:
@@ -91,7 +91,7 @@ class Nó_2_p_1(object):
         self.Fonte_1 = Entrada_1
         self.Fonte_2 = Entrada_2
         
-        self.Cs_Vaz = Entrada_1.Cs_Vaz + Entrada_2.Cs_Vaz
+        self.Cs_Vaz = [float(Entrada_1.Cs_Vaz + Entrada_2.Cs_Vaz)]
         
         self.Calc_Temp()
         self.Calc_Conc(True)
@@ -100,7 +100,7 @@ class Nó_2_p_1(object):
 
     def Update(self) -> None:
         
-        self.Cs_Vaz = self.Fonte_1.Cs_Vaz + self.Fonte_2.Cs_Vaz
+        self.Cs_Vaz[0] = float(self.Fonte_1.Cs_Vaz[0] + self.Fonte_2.Cs_Vaz[0])
         self.Calc_Temp()
         self.Calc_Conc(False)
         
@@ -118,15 +118,15 @@ class Nó_1_p_2(object):
 
             self.Base = Base
             self.Raz = Raz    
-            self.Cs_Vaz = self.Raz * self.Base.Cs_Vaz
-            self.Cs_Temp = self.Base.Cs_Temp
-            self.Cs_Conc = self.Base.Cs_Conc
+            self.Cs_Vaz = [float(self.Raz * self.Base.Cs_Vaz[0])]
+            self.Cs_Temp = [float(self.Base.Cs_Temp[0])]
+            self.Cs_Conc = [float(self.Base.Cs_Conc[0])]
         
         def Update(self) -> None:
             
-            self.Cs_Vaz = self.Raz * self.Base.Cs_Vaz
-            self.Cs_Temp = self.Base.Cs_Temp
-            self.Cs_Conc = self.Base.Cs_Conc
+            self.Cs_Vaz = [float(self.Raz * self.Base.Cs_Vaz[0])]
+            self.Cs_Temp = [float(self.Base.Cs_Temp[0])]
+            self.Cs_Conc = [float(self.Base.Cs_Conc[0])]
 
     def __init__(self, Entrada:Linha, Raz_Vaz_2_a_1:float) -> None:
         
@@ -151,6 +151,95 @@ class Nó_1_p_2(object):
         pass
 
 class Reação(object):
-    def __init__(self) -> None:
+    def __init__(self, Ej:float, A:float, Matriz_Esteq:list, delta_Entalpia:float) -> None:
         
+        self.Ej = Ej
+        self.A = A
+        self.Mr = Matriz_Esteq
+        self.dH = delta_Entalpia
     
+    def K_arr(self, Temp) -> float:
+        K = self.A * math.exp((-self.Ej)/(8.314 * Temp))
+        return K
+    
+    def Saldo_molar(self, Temp:float, Mconc:list, dt:float) -> list:
+        self.Alfa = self.K_arr(Temp)
+        for k in range(0, len(self.Mr), 1):
+            if self.Mr[k] < 0:
+                self.Alfa = self.Alfa * pow(Mconc[k],self.Mr[k])
+        
+        Saldo_M = []
+        for k in range(0, len(self.Mr), 1):
+            Saldo_M.append(self.Mr[k] * self.Alfa * dt)
+        
+        return Saldo_M
+    
+    def dQ_dt(self) -> float:
+        dq = self.dH * self.Alfa
+        return dq
+    
+class CSTR(object): 
+
+    def __init__(self, Type:int, Info_fluido_reativo:Info) -> None:
+        """
+        Type "1" --> CSTR COM RESFRIAMENTO
+        Type "2" --> CSTR COM AQUECIMENTO
+        """
+        self.Info = Info_fluido_reativo
+        def Vaz_Max(self) ->float:
+            alfa = math.pi * pow(self.Dim_Raio_Saída,2) * math.sqrt(2*9.81)
+            Vm = alfa * math.sqrt(self.Dim_Altura * (self.Cs_Vol/self.Dim_Vol_Max))
+            return Vm
+
+        def Parâm_Gerais(self, Entrada:Linha, Raio:float, Altura:float, Raio_Canal_Saída:float,
+                        Raz_Vol_In:float, Vaz_Saída_In:float, Temp_in:float, Conc_In:list) ->None:
+
+            self.Con_Entrada = Entrada
+
+            self.Dim_Raio = Raio
+            self.Dim_Altura = Altura
+            self.Dim_Raio_Saída = Raio_Canal_Saída
+
+            self.Cin_Raz_Vol = Raz_Vol_In
+            
+            self.Cs_Vaz = [Vaz_Saída_In]
+            self.Cs_Temp = [Temp_in]
+            self.Cs_Conc = [Conc_In]
+
+            self.Dim_Vol_Max = 2 * math.pi * pow(self.Dim_Raio,2) * self.Dim_Altura
+            self.Cs_Vol = [self.Dim_Vol_Max * self.Cin_Raz_Vol]
+
+            self.Var_Raz_Vaz = [self.Cs_Vaz/self.Vaz_Max()]       
+
+        self.Type = Type
+        if Type == 1:
+            def Parâm_Esp(self, Área_Cob_Jaq:float, Vol_Jaq:float,
+                          Vaz_Máx:float, Temp_Entrada:float, Cp:float, Densidade:float,
+                          Raz_Vaz_In:float, Temp_In_Jaq:float) -> None:
+                
+                self.Dim_J_Area_TT = Área_Cob_Jaq
+                self.Dim_J_Vol = Vol_Jaq
+                self.Dim_J_Vaz_max = Vaz_Máx
+                self.Dim_J_Temp_ent = Temp_Entrada
+                
+                self.Par_J_Cp = Cp
+                self.Par_J_U_tt = 851.7395
+                self.Par_J_Dens = Densidade
+
+                self.Var_J_Raz_Vaz = [Raz_Vaz_In]
+                self.Cs_J_Temp = [Temp_In_Jaq]
+            
+                def dQ_dt(self) -> float:
+                    
+                    Q = self.Par_J_U_tt * self.Dim_J_Area_TT * (self.Cs_Temp[0] - self.Cs_J_Temp[0])
+                    en_troc = (Q)/(self.info.Densidade * self.info.Cp)
+                    
+                    
+                    return en_troc
+
+
+
+        elif Type == 2:
+            def Parâm_Esp(self, Vaz_Mass_Max:float, Ent_Mass_vap:float, Ent_Mass_liq:float, Raz_Vaz_Vap_In:float) -> None:
+
+                self.
