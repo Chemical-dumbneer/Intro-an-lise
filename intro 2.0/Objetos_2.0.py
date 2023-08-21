@@ -266,8 +266,7 @@ class CSTR(object):
                 self.Cs_Raz_Vaz_Vap = [Raz_Vaz_Vap_In]
         
     def Update(self) -> None:
-        self.atumalaca
-
+        self.atumalaca.ahahahahahah
     def Vectorize(self) -> None:
         pass
 
