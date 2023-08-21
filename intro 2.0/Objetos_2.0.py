@@ -186,6 +186,26 @@ class CSTR(object):
         Type "2" --> CSTR COM AQUECIMENTO
         """
         self.Info = Info_fluido_reativo
+
+        # declarando variáveis
+        self.Con_Entrada = any()
+
+        self.Dim_Raio = any()
+        self.Dim_Altura = any()
+        self.Dim_Raio_Saída = any()
+
+        self.Cin_Raz_Vol = any()
+        
+        self.Cs_Vaz = any()
+        self.Cs_Temp = any()
+        self.Cs_Conc = any()
+
+        self.Dim_Vol_Max = 2 * math.pi * pow(self.Dim_Raio,2) * self.Dim_Altura
+        self.Cs_Vol = [self.Dim_Vol_Max * self.Cin_Raz_Vol]
+
+        self.Var_Raz_Vaz = [self.Cs_Vaz/self.Vaz_Max()]       
+
+        # término de declaração
         def Vaz_Max(self) ->float:
             alfa = math.pi * pow(self.Dim_Raio_Saída,2) * math.sqrt(2*9.81)
             Vm = alfa * math.sqrt(self.Dim_Altura * (self.Cs_Vol/self.Dim_Vol_Max))
@@ -233,8 +253,6 @@ class CSTR(object):
                     
                     Q = self.Par_J_U_tt * self.Dim_J_Area_TT * (self.Cs_Temp[0] - self.Cs_J_Temp[0])
                     en_troc = (Q)/(self.info.Densidade * self.info.Cp)
-                    
-                    
                     return en_troc
 
 
@@ -242,4 +260,16 @@ class CSTR(object):
         elif Type == 2:
             def Parâm_Esp(self, Vaz_Mass_Max:float, Ent_Mass_vap:float, Ent_Mass_liq:float, Raz_Vaz_Vap_In:float) -> None:
 
-                self.
+                self.Par_Vaz_Mass_Max = Vaz_Mass_Max
+                self.Par_Ent_Vap = Ent_Mass_vap
+                self.Par_Ent_Liq = Ent_Mass_liq
+                self.Cs_Raz_Vaz_Vap = [Raz_Vaz_Vap_In]
+        
+    def Update(self) -> None:
+        self.
+
+    def Vectorize(self) -> None:
+        pass
+
+    def Publish(self) -> None:
+        pass
