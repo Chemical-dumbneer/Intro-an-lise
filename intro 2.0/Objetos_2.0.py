@@ -187,21 +187,22 @@ class CSTR(object):
         """
         self.Info = Info_fluido_reativo
 
-        # declarando variáveis
+        # declarando variáveis para facilitar a programação (desnecessário para a execução do código)
+        
         self.Con_Entrada:Linha
 
-        self.Dim_Raio
-        self.Dim_Altura
-        self.Dim_Raio_Saída
+        self.Dim_Raio:float
+        self.Dim_Altura:float
+        self.Dim_Raio_Saída:float
 
-        self.Cin_Raz_Vol
+        self.Cin_Raz_Vol:float
         
-        self.Cs_Vaz
-        self.Cs_Temp
-        self.Cs_Conc
+        self.Cs_Vaz:list
+        self.Cs_Temp:list
+        self.Cs_Conc:list
 
-        self.Dim_Vol_Max
-        self.Cs_Vol
+        self.Dim_Vol_Max:float
+        self.Cs_Vol:list
 
         self.Var_Raz_Vaz
         
