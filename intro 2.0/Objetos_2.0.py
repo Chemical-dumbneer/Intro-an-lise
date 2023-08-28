@@ -188,22 +188,41 @@ class CSTR(object):
         self.Info = Info_fluido_reativo
 
         # declarando variáveis
-        self.Con_Entrada = any()
+        self.Con_Entrada:Linha
 
-        self.Dim_Raio = any()
-        self.Dim_Altura = any()
-        self.Dim_Raio_Saída = any()
+        self.Dim_Raio
+        self.Dim_Altura
+        self.Dim_Raio_Saída
 
-        self.Cin_Raz_Vol = any()
+        self.Cin_Raz_Vol
         
-        self.Cs_Vaz = any()
-        self.Cs_Temp = any()
-        self.Cs_Conc = any()
+        self.Cs_Vaz
+        self.Cs_Temp
+        self.Cs_Conc
 
-        self.Dim_Vol_Max = 2 * math.pi * pow(self.Dim_Raio,2) * self.Dim_Altura
-        self.Cs_Vol = [self.Dim_Vol_Max * self.Cin_Raz_Vol]
+        self.Dim_Vol_Max
+        self.Cs_Vol
 
-        self.Var_Raz_Vaz = [self.Cs_Vaz/self.Vaz_Max()]       
+        self.Var_Raz_Vaz
+        
+        self.Dim_J_Area_TT
+        self.Dim_J_Vol
+        self.Dim_J_Vaz_max
+        self.Dim_J_Temp_ent
+        
+        self.Par_J_Cp
+        self.Par_J_U_tt
+        self.Par_J_Dens
+
+        self.Var_J_Raz_Vaz
+        self.Cs_J_Temp
+        
+        self.Par_Vaz_Mass_Max
+        self.Par_Ent_Vap
+        self.Par_Ent_Liq
+        self.Cs_Raz_Vaz_Vap
+        
+        self.Parâm_Esp:function
 
         # término de declaração
         def Vaz_Max(self) ->float:
