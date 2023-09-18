@@ -48,7 +48,8 @@ class Linha:
     def Print_Final_state(self) -> None:
         pass
 
-class Fonte(object):
+class Fonte:
+    
     def __init__(self, Vaz_max, Raz_vaz, Temp, Conc:list) -> None:
         
         self.Vaz_Max = Vaz_max / 1000
@@ -57,12 +58,12 @@ class Fonte(object):
         self.Cs_Temp = [Temp + 273.15]
         self.Cs_Conc = [Conc]
 
-        self.Output = Linha(self)
-
         self.Vect_Vaz = []
         self.Vect_Temp = []
         self.Vect_Conc = []
         
+        self.Saída = Linha(self)
+                
     def Update(self, dt:float) -> None:
         
         self.Cs_Vaz[0] = self.Raz_Vaz[0] * self.Vaz_Max
@@ -206,6 +207,26 @@ class CSTR(object):
         alfa = math.pi * pow(self.Dim_Raio_Saída,2) * math.sqrt(2 * 9.81)
         Vm = alfa * math.sqrt(self.Dim_Altura * (self.Cs_Vol / self.Dim_Vol_Max))
         return Vm
+    
+    def Parâm_Gerais(self, Entrada:Linha, Raio:float, Altura:float, Raio_Canal_Saída:float,
+            Raz_Vol_In:float, Vaz_Saída_In:float, Temp_in:float, Conc_In:list) ->None:
+
+        self.Con_Entrada = Entrada
+
+        self.Dim_Raio = Raio
+        self.Dim_Altura = Altura
+        self.Dim_Raio_Saída = Raio_Canal_Saída
+
+        self.Cin_Raz_Vol = Raz_Vol_In
+        
+        self.Cs_Vaz = [Vaz_Saída_In]
+        self.Cs_Temp = [Temp_in]
+        self.Cs_Conc = [Conc_In]
+
+        self.Dim_Vol_Max = 2 * math.pi * pow(self.Dim_Raio,2) * self.Dim_Altura
+        self.Cs_Vol = [self.Dim_Vol_Max * self.Cin_Raz_Vol]
+
+        self.Var_Raz_Vaz = [self.Cs_Vaz / self.Vaz_Max()]
 
     def __init__(self, Type:int, Info_fluido_reativo:Info, Nome_Reator:str) -> None:
         """
@@ -263,27 +284,7 @@ class CSTR(object):
         if self.Type == 1:
             self.Vect_Temp_j = []
             
-        # término de declaração
-        
-        def Parâm_Gerais(self, Entrada:Linha, Raio:float, Altura:float, Raio_Canal_Saída:float,
-                        Raz_Vol_In:float, Vaz_Saída_In:float, Temp_in:float, Conc_In:list) ->None:
-
-            self.Con_Entrada = Entrada
-
-            self.Dim_Raio = Raio
-            self.Dim_Altura = Altura
-            self.Dim_Raio_Saída = Raio_Canal_Saída
-
-            self.Cin_Raz_Vol = Raz_Vol_In
-            
-            self.Cs_Vaz = [Vaz_Saída_In]
-            self.Cs_Temp = [Temp_in]
-            self.Cs_Conc = [Conc_In]
-
-            self.Dim_Vol_Max = 2 * math.pi * pow(self.Dim_Raio,2) * self.Dim_Altura
-            self.Cs_Vol = [self.Dim_Vol_Max * self.Cin_Raz_Vol]
-
-            self.Var_Raz_Vaz = [self.Cs_Vaz / self.Vaz_Max()]       
+        # término de declaração       
 
         self.Type = Type
         if Type == 1:
